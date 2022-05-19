@@ -26,7 +26,7 @@ typedef enum
  */
 typedef struct  Robot_Status_Params
 {
-    float    voltage;                 //real voltage = voltage/10
+    float      voltage;                 //real voltage = voltage/10
     int16_t    l_encoder_pulse;
     int16_t    r_encoder_pulse;  
     float      acc[3];
