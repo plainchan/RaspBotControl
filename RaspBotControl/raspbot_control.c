@@ -4,10 +4,19 @@
 #include "sys.h"
 
 
+/***** 数据封包结构体  *****/
+Frame_Robot_dpkg          robot_dpkg={0};
+Frame_IMU_dpkg            imu_dpkg={0};
+Frame_IMU_9Axis_dpkg 			imu_9Axis_dpkg={0};
+Frame_IMU_6Axis_dpkg 			imu_6Axis_dpkg={0};
+Frame_Encoder_dpkg 				encode_dpkg={0};
+Frame_Voltage_dpkg 				voltage_dpkg={0};
 
+/***** 数据解包结构体  *****/
+Stream_msgs               stream_msgs={0};
 
-Stream_msgs stream_msgs={};
 volatile float power_voltage=11.1;
+
 int  receiveFlag=0;
 
 Battery battery=BATTERY_FULL;
@@ -123,5 +132,19 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 		receiveFlag = parse_stream(&stream_msgs,USART_ReceiveData(USART1));
   } 
 } 
+
+
+void test(void)
+{
+	//编码器通信测试
+	encode_dpkg.header[0]=Header1;
+	encode_dpkg.header[1]=Header2;
+	encode_dpkg.crc = 244;
+	encode_dpkg.len = encoder_dpkg_len;
+	encode_dpkg.encoder_dpkg.data_tag = encoder_tag;
+	encode_dpkg.encoder_dpkg.l_encoder_pulse+=1;
+	encode_dpkg.encoder_dpkg.r_encoder_pulse+=1;
+	sendFrame_Encoder_dpkg(&encode_dpkg);
+}
 
 

@@ -24,18 +24,15 @@ extern volatile float power_voltage;
 void voltage_check(void);
 void oled_showContent(void);
 void lowVoltageAlarm(void);
+void test(void);
 
-
-extern Stream_msgs stream_msgs;
-
-
-
-
-
-
-
-
-
+extern Stream_msgs               stream_msgs;
+extern Frame_Robot_dpkg          robot_dpkg;
+extern Frame_IMU_dpkg            imu_dpkg;
+extern Frame_IMU_9Axis_dpkg 		 imu_9Axis_dpkg;
+extern Frame_IMU_6Axis_dpkg 		 imu_6Axis_dpkg;
+extern Frame_Encoder_dpkg 			 encode_dpkg;
+extern Frame_Voltage_dpkg 			 voltage_dpkg;
 
 
 

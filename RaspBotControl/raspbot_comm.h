@@ -1,13 +1,52 @@
 #ifndef __RASPBOT_COMM_H__
 #define __RASPBOT_COMM_H__
 
+/****************************************************************************************
+*                             Serial Protocol                                           *
+*                                                                                       *
+*  ,------+------+-------+- - - - - -+- - - - - -+- - - - -+                            *
+*  | SOF  |  LEN | CRC16 |    DPKG   |    DPKG   |   ....  |                            *
+*  |  2   |   1  |   2   |    ...    |    ...    |   ...   |                            *
+*  '----- +------+-------+- - - - - -+- - - - - -+- - - - -+                            *
+*  SOF  .........  start of frame, 2 bytes                                              *
+*  LEN  .........  number of data package in the frame                                  *
+*  CRC  .........  cyclic redundancy check                                              *
+*  DPKG .........  data package,include DATA_TAG,DATA                                   *
+*                                                                                       *
+*  ,------+--------------+---------+---------+--------+                                 *
+*  | Type |  elem        |  size   |  offset |  byte  |                                 *
+*  ,------,--------------+---------+---------+--------+                                 *
+*  |      | frame  head1 | 1 BYTE  |    0    |    1   |                                 *
+*  | SOF  ,--------------+---------+---------+--------+                                 *
+*  |      | frame  head2 | 1 BYTE  |    1    |    2   |                                 *
+*  ,------,--------------+---------+---------+--------+                                 *
+*  | LEN  |              | 1 BYTE  |    2    |    3   |                                 *
+*  ,------,--------------+---------+---------+--------+                                 *
+*  | CRC  |              | 2 BYTES |    3    |    5   |                                 *
+*  ,------,--------------+---------+---------+--------+                                 *
+*  |      |   DATA_TAG   | 1 BYTE  |    5    |    6   |                                 *
+*  | DPKG ,--------------+---------+---------+--------+                                 *
+*  |      |   DATA       | n BYTES |   5+n   |   6+n  |                                 *
+*  ,---------------------+---------+---------+--------+                                 *
+*  |      |   DATA_TAG   | 1 BYTE  |   6+n   |   7+n  |                                 *
+*  | DPKG ,--------------+---------+---------+--------+                                 *
+*  |      |   DATA       | m BYTES |  6+m+n  |  7+m+n |                                 *
+*  ----------------------+---------+---------+--------+                                 *
+*                                                                                       *
+*  Endian: Little-Endian                                                                *
+*****************************************************************************************/
+
 #include "stdint.h"
 
+//#define imu_mag
+
+/**
+ *  串口传输缓冲区最大大小
+ */
 #define MAX_RxBUFF_SIZE   0x01FE                   //510
 
 /**
  *  帧缓冲区最大大小
- * 
  */
 #define MAX_BUFF_SIZE      0xFF                             //255
 #define FRAME_INFO_SIZE    0x05                             //5    非数据域
@@ -16,8 +55,26 @@
 #define Header1                  (uint8_t)0xFE
 #define Header2                  (uint8_t)0xEF
 
+
+#define encoder_dpkg_len    (uint8_t)0x05
+#ifdef   imu_mag
+#define robot_dpkg_len      (uint8_t)0x36		 //54
+#define imu_dpkg_len        (uint8_t)0x31    //49
+#else
+#define robot_dpkg_len      (uint8_t)0x2A    //42
+#define imu_dpkg_len        (uint8_t)0x25    //37
+#endif
+#define imu_6axis_dpkg_len  (uint8_t)0x19    //25
+#define imu_9axis_dpkg_len  (uint8_t)0x25    //37
+#define voltage_dpkg_len    (uint8_t)0x02
+
 #define robot_tag                0xA0
 #define speed_tag                0xB0
+#define encoder_tag              0xC0
+#define imu_tag                  0xD0
+#define imu_6axis_tag            0xD6
+#define imu_9axis_tag            0xD9
+#define voltage_tag              0xE0
 
 typedef union 
 {
@@ -41,33 +98,142 @@ typedef union
 	uint32_t   number;
 }Bytes2U32;
 
+float Bytes2FloatConv(const uint8_t* buff);
+int16_t Bytes2INT16Conv(const uint8_t* buff);
+uint16_t Bytes2U16Conv(const uint8_t* buff);
+
+
+/***********数据封包结构体定义***********/
 /**
-	*  发送帧数据结构体定义
-	*/
+ * @brief 电压
+ */
+__packed typedef struct
+{
+		uint8_t    data_tag;
+    uint8_t    voltage;     //size = 2 
+}Voltage_dpkg;
 __packed typedef struct 
 {
-    int8_t     data_tag;
-    uint8_t    voltage;                 //real voltage = voltage/10
+    uint8_t           header[2];
+    uint8_t           len;
+    uint16_t          crc;
+    Voltage_dpkg      voltage;  //size = 5+2 
+}Frame_Voltage_dpkg;
+
+/**
+ * @brief 编码器
+ */
+__packed typedef struct Encoder_Pulse_msg
+{
+		uint8_t    data_tag;
     int16_t    l_encoder_pulse;
-    int16_t    r_encoder_pulse;  
+    int16_t    r_encoder_pulse;     //size = 5+5 
+}Encoder_dpkg;
+__packed typedef struct 
+{
+    uint8_t           header[2];
+    uint8_t           len;
+    uint16_t          crc;
+    Encoder_dpkg      encoder_dpkg;  //size = 5+5 
+}Frame_Encoder_dpkg;
+
+/**
+ * @brief 
+ */
+__packed typedef struct IMU_Acc_Gyr_msg
+{
+		uint8_t    data_tag;
     float      acc[3];
     float      gyr[3];
-    float      mag[3];
-    float      elu[3];
-}Robot_msgs;    //size = 54
+}IMU_6Axis_dpkg;                       //size = 25 
+__packed typedef struct 
+{
+    uint8_t           header[2];
+    uint8_t           len;
+    uint16_t          crc;
+    IMU_6Axis_dpkg    imu_6axis_dpkg;  //size = 25+5 
 
+}Frame_IMU_6Axis_dpkg;
+
+__packed typedef struct IMU_Acc_Gyr_Mag_msg
+{
+		uint8_t     data_tag;
+    float       acc[3];
+    float       gyr[3];
+    float       mag[3];
+}IMU_9Axis_dpkg;                       //size = 37 
+__packed typedef struct 
+{
+    uint8_t           header[2];
+    uint8_t           len;
+    uint16_t          crc;
+    IMU_9Axis_dpkg    imu_9axis_dpkg;  //size = 37+5 
+
+}Frame_IMU_9Axis_dpkg;
+
+
+/**
+ * @brief IMU
+ */
+__packed typedef struct IMU_Acc_Gyr_Elu_msg
+{
+		uint8_t    data_tag;
+    float      acc[3];
+    float      gyr[3];
+#ifdef     imu_mag
+    float      mag[3];
+#endif
+    float      elu[3];
+}IMU_dpkg;                  //size = 37 or 49     
 __packed typedef struct 
 {
     uint8_t      header[2];
     uint8_t      len;
     uint16_t     crc;
-    Robot_msgs   robot_msgs;  //size = 54+5 
+    IMU_dpkg   	 imu_dpkg;  //size = 37+5 or 49+5 
 
-}Frame_Robot_msg;
+}Frame_IMU_dpkg;
 
 
-void sendFrameData(Frame_Robot_msg *msg);
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief status of robot 
+ */
+__packed typedef struct 
+{
+    uint8_t    data_tag;
+    uint8_t    voltage;                 //real voltage = voltage/10
+    int16_t    l_encoder_pulse;
+    int16_t    r_encoder_pulse;  
+    float      acc[3];
+    float      gyr[3];
+#ifdef     imu_mag
+    float      mag[3];
+#endif
+    float      elu[3];
+}Robot_dpkg;                    //size = 42 or 54
+__packed typedef struct 
+{
+    uint8_t      header[2];
+    uint8_t      len;
+    uint16_t     crc;
+    Robot_dpkg   robot_dpkg;  //size = 54+5 or 54+5 
+
+}Frame_Robot_dpkg;
+
+/**
+	* @brief  特定数据包封装帧结构体发送
+ */
+void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg);
+void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg);
+void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg);
+void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg);
+void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg);
+void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg);
+//-----------------------------------------
+
+
+
+/***********数据解包结构体定义***********/
 
 typedef struct
 {
@@ -84,6 +250,7 @@ typedef struct
 	Speed_msgs   speed_msgs;
 }Stream_msgs;
 
+//-----------------------------------------
 
 
 /**
