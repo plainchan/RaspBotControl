@@ -4,16 +4,8 @@
 #include "sys.h"
 
 
-/***** 数据封包结构体  *****/
-Frame_Robot_dpkg          robot_dpkg={0};
-Frame_IMU_dpkg            imu_dpkg={0};
-Frame_IMU_9Axis_dpkg 			imu_9Axis_dpkg={0};
-Frame_IMU_6Axis_dpkg 			imu_6Axis_dpkg={0};
-Frame_Encoder_dpkg 				encode_dpkg={0};
-Frame_Voltage_dpkg 				voltage_dpkg={0};
-
-/***** 数据解包结构体  *****/
-Stream_msgs               stream_msgs={0};
+/***** 小车变量结构体  *****/
+Robot_msgs                robot_msgs={0};
 
 volatile float power_voltage=11.1;
 
@@ -76,17 +68,17 @@ void oled_showContent(void)
 	}
 	
 	
-  //显示速度
-	if(receiveFlag==1)
-	{
-		float v = stream_msgs.speed_msgs.velocity/1000.0;
-		float y = stream_msgs.speed_msgs.yaw/1000.0;
-		if(v>0) oled_char(98,36,'+',12,1); else oled_char(98,36,'-',12,1);
-		if(y>0) oled_char(98,52,'+',12,1); else oled_char(98,52,'-',12,1);
-		oled_float(104,36,v,2,12);
-		oled_float(104,52,y,2,12);
-//		oled_num(0,0,sizeof(Frame_Robot_msg),3,12);
-	}
+//   //显示速度
+// 	if(receiveFlag==1)
+// 	{
+// 		float v = stream_msgs.speed_msgs.velocity/1000.0;
+// 		float y = stream_msgs.speed_msgs.yaw/1000.0;
+// 		if(v>0) oled_char(98,36,'+',12,1); else oled_char(98,36,'-',12,1);
+// 		if(y>0) oled_char(98,52,'+',12,1); else oled_char(98,52,'-',12,1);
+// 		oled_float(104,36,v,2,12);
+// 		oled_float(104,52,y,2,12);
+// //		oled_num(0,0,sizeof(Frame_Robot_msg),3,12);
+// 	}
 	
 
 
@@ -137,14 +129,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 void test(void)
 {
 	//编码器通信测试
-	encode_dpkg.header[0]=Header1;
-	encode_dpkg.header[1]=Header2;
-	encode_dpkg.crc = 244;
-	encode_dpkg.len = encoder_dpkg_len;
-	encode_dpkg.encoder_dpkg.data_tag = encoder_tag;
-	encode_dpkg.encoder_dpkg.l_encoder_pulse+=1;
-	encode_dpkg.encoder_dpkg.r_encoder_pulse+=1;
-	sendFrame_Encoder_dpkg(&encode_dpkg);
+	sendFrame_Encoder_dpkg(&frame_encode_dpkg,244);
 }
 
 

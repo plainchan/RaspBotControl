@@ -9,7 +9,7 @@
 #define MOTOR_L_DIR_PIN1     GPIO_Pin_4       //A4
 #define MOTOR_L_DIR_PIN2     GPIO_Pin_5       //A5
 #define MOTOR_L_DIR1         PAout(4)          
-#define MOTOR_L_DIR2				 PAout(5)          
+#define MOTOR_L_DIR2		 PAout(5)          
 
 #define MOTOR_R_PWM_PIN      GPIO_Pin_8       //B0
 #define MOTOR_R_DIR_PIN1     GPIO_Pin_9       //B9

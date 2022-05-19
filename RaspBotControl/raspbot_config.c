@@ -427,7 +427,7 @@ u16 getAnalogValue()
 void UART1_Init(u32 baud)
 {
   //GPIO∂Àø⁄…Ë÷√
-  GPIO_InitTypeDef GPIO_InitStructure;
+  	GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 	 

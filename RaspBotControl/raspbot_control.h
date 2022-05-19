@@ -1,8 +1,9 @@
 #ifndef __RASPBOT_CONTROL_H__
 #define __RASPBOT_CONTROL_H__
 
-
 #include "raspbot_comm.h"
+
+#define imu_mag
 
 #define ANALOG_VOL    3.30         //模拟电压参考值
 #define COV_COUNT     5.0          //电压循环检测次数
@@ -20,19 +21,32 @@ typedef enum
 	BATTERY_ALARM
 }Battery;
 
+/**
+ * @brief status of robot 
+ */
+typedef struct  Robot_Status_Params
+{
+    float    voltage;                 //real voltage = voltage/10
+    int16_t    l_encoder_pulse;
+    int16_t    r_encoder_pulse;  
+    float      acc[3];
+    float      gyr[3];
+#ifdef     imu_mag
+    float      mag[3];
+#endif
+    float      elu[3];
+}Robot_msgs; 
+
+
+
+
 extern volatile float power_voltage;
 void voltage_check(void);
 void oled_showContent(void);
 void lowVoltageAlarm(void);
 void test(void);
 
-extern Stream_msgs               stream_msgs;
-extern Frame_Robot_dpkg          robot_dpkg;
-extern Frame_IMU_dpkg            imu_dpkg;
-extern Frame_IMU_9Axis_dpkg 		 imu_9Axis_dpkg;
-extern Frame_IMU_6Axis_dpkg 		 imu_6Axis_dpkg;
-extern Frame_Encoder_dpkg 			 encode_dpkg;
-extern Frame_Voltage_dpkg 			 voltage_dpkg;
+
 
 
 

@@ -38,7 +38,7 @@
 
 #include "stdint.h"
 
-//#define imu_mag
+// #define imu_mag
 
 /**
  *  串口传输缓冲区最大大小
@@ -104,12 +104,23 @@ uint16_t Bytes2U16Conv(const uint8_t* buff);
 
 
 /***********数据封包结构体定义***********/
+
+/**
+ * @brief 帧头+dpkg总长度+crc
+ */
+__packed typedef struct 
+{
+    uint8_t      header[2];
+    uint8_t      len;
+    uint16_t     crc;
+}Frame_Info;
+
 /**
  * @brief 电压
  */
 __packed typedef struct
 {
-		uint8_t    data_tag;
+	uint8_t    data_tag;
     uint8_t    voltage;     //size = 2 
 }Voltage_dpkg;
 __packed typedef struct 
@@ -125,7 +136,7 @@ __packed typedef struct
  */
 __packed typedef struct Encoder_Pulse_msg
 {
-		uint8_t    data_tag;
+	uint8_t    data_tag;
     int16_t    l_encoder_pulse;
     int16_t    r_encoder_pulse;     //size = 5+5 
 }Encoder_dpkg;
@@ -142,7 +153,7 @@ __packed typedef struct
  */
 __packed typedef struct IMU_Acc_Gyr_msg
 {
-		uint8_t    data_tag;
+	uint8_t    data_tag;
     float      acc[3];
     float      gyr[3];
 }IMU_6Axis_dpkg;                       //size = 25 
@@ -157,7 +168,7 @@ __packed typedef struct
 
 __packed typedef struct IMU_Acc_Gyr_Mag_msg
 {
-		uint8_t     data_tag;
+	uint8_t     data_tag;
     float       acc[3];
     float       gyr[3];
     float       mag[3];
@@ -177,7 +188,7 @@ __packed typedef struct
  */
 __packed typedef struct IMU_Acc_Gyr_Elu_msg
 {
-		uint8_t    data_tag;
+	uint8_t    data_tag;
     float      acc[3];
     float      gyr[3];
 #ifdef     imu_mag
@@ -220,15 +231,33 @@ __packed typedef struct
 
 }Frame_Robot_dpkg;
 
+
+/***** 数据封包结构体  *****/
+extern Robot_dpkg          		        robot_dpkg;
+extern IMU_dpkg            		        imu_dpkg;
+extern IMU_9Axis_dpkg 				    imu_9Axis_dpkg;
+extern IMU_6Axis_dpkg 				    imu_6Axis_dpkg;
+extern Encoder_dpkg 				    encode_dpkg;
+extern Voltage_dpkg 				    voltage_dpkg;
+
+/***** 数据封包结构体  *****/
+extern Frame_Robot_dpkg          		frame_robot_dpkg;
+extern Frame_IMU_dpkg            		frame_imu_dpkg;
+extern Frame_IMU_9Axis_dpkg 			frame_imu_9Axis_dpkg;
+extern Frame_IMU_6Axis_dpkg 			frame_imu_6Axis_dpkg;
+extern Frame_Encoder_dpkg 				frame_encode_dpkg;
+extern Frame_Voltage_dpkg 				frame_voltage_dpkg;
+
 /**
 	* @brief  特定数据包封装帧结构体发送
  */
-void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg);
-void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg);
-void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg);
-void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg);
-void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg);
-void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg);
+void sendFrame_Multi_dpkg(void);
+void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg,uint16_t crc);
+void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg,uint16_t crc);
+void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg,uint16_t crc);
+void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg,uint16_t crc);
+void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg,uint16_t crc);
+void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg,uint16_t crc);
 //-----------------------------------------
 
 
@@ -245,7 +274,7 @@ typedef struct
 {
 
 	uint8_t      len;
-  uint16_t     crc;
+    uint16_t     crc;
 	uint8_t      stream_buff[MAX_BUFF_SIZE];
 	Speed_msgs   speed_msgs;
 }Stream_msgs;
