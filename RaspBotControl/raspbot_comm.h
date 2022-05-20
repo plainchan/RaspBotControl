@@ -37,7 +37,7 @@
 *****************************************************************************************/
 
 #include "stdint.h"
-
+#include "raspbot_control.h"
 // #define imu_mag
 
 /**
@@ -252,12 +252,12 @@ extern Frame_Voltage_dpkg 				frame_voltage_dpkg;
 	* @brief  特定数据包封装帧结构体发送
  */
 void sendFrame_Multi_dpkg(void);
-void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg,uint16_t crc);
-void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg,uint16_t crc);
-void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg,uint16_t crc);
-void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg,uint16_t crc);
-void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg,uint16_t crc);
-void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg,uint16_t crc);
+void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc);
+void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc);
+void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc);
+void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc);
+void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc);
+void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc);
 //-----------------------------------------
 
 
@@ -266,19 +266,13 @@ void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg,uint16_t crc);
 
 typedef struct
 {
-  float        velocity;
-  float        yaw;
-}Speed_msgs;
-
-typedef struct
-{
 
 	uint8_t      len;
-    uint16_t     crc;
+  uint16_t     crc;
 	uint8_t      stream_buff[MAX_BUFF_SIZE];
-	Speed_msgs   speed_msgs;
 }Stream_msgs;
 
+extern Stream_msgs               stream_msgs;
 //-----------------------------------------
 
 

@@ -7,10 +7,11 @@ int main(void)
 
 	while(1)
 	{	
-		test();
+		
+		sendFrame_Encoder_dpkg(&frame_encode_dpkg,&robot_msgs,0);
 //		voltage_check();
 //		oled_showContent();
-		delay_ms(1);
+//		delay_ms(1);
 	}
 }
 

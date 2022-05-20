@@ -7,10 +7,10 @@ Robot_dpkg          		robot_dpkg={0};
 IMU_dpkg            		imu_dpkg={0};
 IMU_9Axis_dpkg 				imu_9Axis_dpkg={0};
 IMU_6Axis_dpkg 				imu_6Axis_dpkg={0};
-Encoder_dpkg 				encode_dpkg={0};
+Encoder_dpkg 				encoder_dpkg={0};
 Voltage_dpkg 				voltage_dpkg={0};
 
-/***** 数据封包结构体  *****/
+/***** 帧数据封包结构体  *****/
 Frame_Robot_dpkg          		frame_robot_dpkg={0};
 Frame_IMU_dpkg            		frame_imu_dpkg={0};
 Frame_IMU_9Axis_dpkg 			frame_imu_9Axis_dpkg={0};
@@ -91,8 +91,8 @@ int decode_frame(Stream_msgs *stream_msgs)
 		switch (buff[offset])
 		{
 		case speed_tag:
-			stream_msgs->speed_msgs.velocity=Bytes2INT16Conv(&stream_msgs->stream_buff[offset+1]);offset+=2;
-			stream_msgs->speed_msgs.yaw=Bytes2INT16Conv(&stream_msgs->stream_buff[offset+1]);offset+=2;
+//			robot_msgs.velocity=Bytes2INT16Conv(&stream_msgs->stream_buff[offset+1]);offset+=2;
+//			robot_msgs.yaw=Bytes2INT16Conv(&stream_msgs->stream_buff[offset+1]);offset+=2;
 			break;
 		default:++offset;
 			break;
@@ -103,7 +103,7 @@ int decode_frame(Stream_msgs *stream_msgs)
 
 
 uint8_t bytesBuff[MAX_BUFF_SIZE]={0};
-void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg,uint16_t crc)
+void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc)
 {
 	dpkg->header[0]=Header1;
 	dpkg->header[1]=Header2;
@@ -117,7 +117,7 @@ void sendFrame_Robot_dpkg(Frame_Robot_dpkg *dpkg,uint16_t crc)
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
-void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg,uint16_t crc)
+void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc)
 {
 	dpkg->header[0]=Header1;
 	dpkg->header[1]=Header2;
@@ -131,7 +131,7 @@ void sendFrame_IMU_dpkg(Frame_IMU_dpkg *dpkg,uint16_t crc)
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
-void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg,uint16_t crc)
+void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc)
 {
 	dpkg->header[0]=Header1;
 	dpkg->header[1]=Header2;
@@ -145,7 +145,7 @@ void sendFrame_IMU_9Axis_dpkg(Frame_IMU_9Axis_dpkg *dpkg,uint16_t crc)
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
-void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg,uint16_t crc)
+void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc)
 {
 	dpkg->header[0]=Header1;
 	dpkg->header[1]=Header2;
@@ -159,12 +159,15 @@ void sendFrame_IMU_6Axis_dpkg(Frame_IMU_6Axis_dpkg *dpkg,uint16_t crc)
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
-void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg,uint16_t crc)
+void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc)
 {
 	dpkg->header[0]=Header1;
 	dpkg->header[1]=Header2;
 	dpkg->len = encoder_dpkg_len;
 	dpkg->crc = crc;
+	dpkg->encoder_dpkg.data_tag = encoder_tag;
+	dpkg->encoder_dpkg.l_encoder_pulse = robot_msgs->l_encoder_pulse;
+	dpkg->encoder_dpkg.r_encoder_pulse = robot_msgs->r_encoder_pulse;
 	int size = FRAME_INFO_SIZE+encoder_dpkg_len;    //sizeof(*dpkg)
 	memset(bytesBuff,0,size);
 	memcpy(bytesBuff,dpkg,size);
@@ -174,7 +177,7 @@ void sendFrame_Encoder_dpkg(Frame_Encoder_dpkg *dpkg,uint16_t crc)
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
-void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg,uint16_t crc)
+void sendFrame_Voltage_dpkg(Frame_Voltage_dpkg *dpkg,Robot_msgs* robot_msgs,uint16_t crc)
 {
 	dpkg->header[0]=Header1;
 	dpkg->header[1]=Header2;
@@ -203,8 +206,8 @@ void sendFrame_Multi_dpkg(void)
 
 	
 	memcpy(bytesBuff,&frame_info,FRAME_INFO_SIZE);
-	memcpy(bytesBuff[FRAME_INFO_SIZE],&frame_info,voltage_dpkg_len);
-	memcpy(bytesBuff[FRAME_INFO_SIZE+voltage_dpkg_len],&frame_info,encoder_dpkg_len);
+	memcpy(&bytesBuff[FRAME_INFO_SIZE],&voltage_dpkg,voltage_dpkg_len);
+	memcpy(&bytesBuff[FRAME_INFO_SIZE+voltage_dpkg_len],&encoder_dpkg,encoder_dpkg_len);
 	
 	for(int i=0;i<size;++i)
 	{

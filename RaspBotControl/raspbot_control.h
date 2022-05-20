@@ -37,7 +37,7 @@ typedef struct  Robot_Status_Params
     float      elu[3];
 }Robot_msgs; 
 
-
+//extern Robot_msgs robot_msgs;
 
 
 extern volatile float power_voltage;

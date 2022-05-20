@@ -126,10 +126,5 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 } 
 
 
-void test(void)
-{
-	//编码器通信测试
-	sendFrame_Encoder_dpkg(&frame_encode_dpkg,244);
-}
 
 
