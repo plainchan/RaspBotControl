@@ -314,12 +314,33 @@ void oled_print(unsigned char x,unsigned char y,u8 ch[])
 	}
 }
 
-
-void oled_float(u8 x,u8 y,float num,u8 precison,u8 size)
+void oled_digit(u8 x,u8 y,int num,u8 totalLen,u8 size)
 {
-	u32 integer = num;
-	u16 base = mypow(10,precison);
-	u32 decimal = num*base-integer*base;
+	for(int i=0;i<totalLen;++i)
+		oled_char(x+i*size/2,y,' ',size,1);
+	u32 integer = abs(num);
+	u32 base=1;
+	while(base <= integer/10)
+	{
+		base*=10;
+	}
+	while(base>0)
+	{
+		char ch = integer/base+'0';
+		oled_char(x,y,ch,size,1);
+		integer = integer-base*(ch-'0');
+		base/=10;
+		x+=size/2;
+	}
+}
+
+void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size)
+{
+	for(int i=0;i<=totalLen;++i)
+		oled_char(x+i*size/2,y,' ',size,1);
+	u32 integer = fabs(num);
+	u32 base = mypow(10,precison);
+	u32 decimal = fabs(num*base)-integer*base;
 	base=1;
 	while(base <= integer/10)
 	{
@@ -344,7 +365,7 @@ void oled_float(u8 x,u8 y,float num,u8 precison,u8 size)
 	{
 		char ch = decimal/base+'0';
 		oled_char(x,y,ch,size,1);
-		decimal=decimal-base*(ch-'0');
+		decimal= decimal-base*(ch-'0');
 		base/=10;
 		x+=size/2;
 	}
@@ -367,7 +388,7 @@ void oled_picture(u8 x,u8 y,u8 w,u8 h,const unsigned char *bmp)
 		u8 p = bmp[n];
 		for(int i=0;i<8;++i)
 		{
-			if(p&0x80)oled_point(pos_x,pos_y,1);
+			if(p&0x80)oled_point(pos_x,pos_y,1);else oled_point(pos_x,pos_y,0);
 			p<<=1;
 			++pos_x;
 			if(pos_x==x1)

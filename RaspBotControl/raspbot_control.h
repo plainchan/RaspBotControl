@@ -1,7 +1,7 @@
 #ifndef __RASPBOT_CONTROL_H__
 #define __RASPBOT_CONTROL_H__
 
-#include "raspbot_comm.h"
+#include "stdint.h"
 
 #define imu_mag
 
@@ -24,7 +24,7 @@ typedef enum
 /**
  * @brief status of robot 
  */
-typedef struct  Robot_Status_Params
+typedef struct  Robot_Sensor_Params
 {
     float      voltage;                 //real voltage = voltage/10
     int16_t    l_encoder_pulse;
@@ -35,25 +35,33 @@ typedef struct  Robot_Status_Params
     float      mag[3];
 #endif
     float      elu[3];
+
 }Robot_msgs; 
 
-//extern Robot_msgs robot_msgs;
+/**
+ * @brief status of Motor 
+ */
+typedef struct  Motor_Controlled_Params
+{
+		float      velocity;    //
+		float      yaw;         //
+    int16_t    CtrlPulseL;
+    int16_t    CtrlPulseR;
+}Motor_msgs; 
 
+typedef struct
+{
+	float P;
+	float I;
+	float D;
+}PID;
 
-extern volatile float power_voltage;
+extern  Robot_msgs robot_msgs;
+extern  Motor_msgs motor_msgs;
+
 void voltage_check(void);
 void oled_showContent(void);
 void lowVoltageAlarm(void);
-void test(void);
-
-
-
-
-
-
-
-
-
 
 
 #endif

@@ -22,8 +22,8 @@ void TIM1_IT_Init(u8 ms)
 	TIM_ITConfig(TIM1,TIM_IT_Update,ENABLE);   //允许更新中断
 	
 	NVIC_InitTypeStruct.NVIC_IRQChannel =TIM1_UP_IRQn;
-	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority =1;
-	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority =0;
+	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority =0;
+	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority =1;
 	NVIC_InitTypeStruct.NVIC_IRQChannelCmd =ENABLE;
 	NVIC_Init(&NVIC_InitTypeStruct);
 	
@@ -427,7 +427,7 @@ u16 getAnalogValue()
 void UART1_Init(u32 baud)
 {
   //GPIO端口设置
-  	GPIO_InitTypeDef GPIO_InitStructure;
+  GPIO_InitTypeDef GPIO_InitStructure;
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 	 
@@ -478,21 +478,21 @@ void UART2_Init(u32 baud)
 	 
 	RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART2|RCC_APB2Periph_GPIOA, ENABLE);	//使能USART1，GPIOA时钟
   
-	//USART1_TX   GPIOA.9
+	//USART2_TX   GPIOA.9
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; //PA.9
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;	//复用推挽输出
   GPIO_Init(GPIOA, &GPIO_InitStructure);//初始化GPIOA.9
    
-  //USART1_RX	  GPIOA.10初始化
+  //USART2_RX	  GPIOA.10初始化
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;//PA10
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;//浮空输入
   GPIO_Init(GPIOA, &GPIO_InitStructure);//初始化GPIOA.10  
 
   //Usart1 NVIC 配置
   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=1 ;//抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;		//子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority=2 ;//抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;		//子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
   
@@ -521,7 +521,8 @@ void board_configInit(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC, ENABLE);
 	
 	NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
-
+	
+	
 	
 	SystemInit();
 	delay_init();
@@ -531,7 +532,7 @@ void board_configInit(void)
 	oled_update();
 	
 	motor_init();
-	TIM1_IT_Init(200);
+	TIM1_IT_Init(10);
 	TIM2_PWM_Init();
 	buzzer_hz(10,DISABLE);
 	adc_init();

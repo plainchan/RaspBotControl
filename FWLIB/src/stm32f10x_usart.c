@@ -555,7 +555,7 @@ void USART_LINBreakDetectLengthConfig(USART_TypeDef* USARTx, uint16_t USART_LINB
 }
 
 /**
-  * @brief  Enables or disables the USART’s LIN mode.
+  * @brief  Enables or disables the USARTx LIN mode.
   * @param  USARTx: Select the USART or the UART peripheral. 
   *   This parameter can be one of the following values:
   *   USART1, USART2, USART3, UART4 or UART5.
