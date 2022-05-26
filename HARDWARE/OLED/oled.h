@@ -1,7 +1,8 @@
 #ifndef __OLED_H
 #define __OLED_H			  	 
 #include "sys.h"
-#include "stdlib.h"	   
+#include "stdlib.h"
+#include "math.h"
 
 //////////////////////////////////////////////////////////////////////////////////	 
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
@@ -46,9 +47,9 @@ void oled_char(u8 x,u8 y,u8 chr,u8 size,u8 mode);
 void oled_num(u8 x,u8 y,u32 num,u8 len,u8 size);
 void oled_str(u8 x,u8 y,const u8 *p,u8 size);	 
 void oled_print(unsigned char x,unsigned char y,unsigned char ch[]);
-void oled_float(u8 x,u8 y,float num,u8 precison,u8 size);
+void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size);
 void oled_picture(u8 x,u8 y,u8 w,u8 h,const unsigned char *bmp);
-
+void oled_digit(u8 x,u8 y,long long num,u8 totalLen,u8 size);
 
 //图片 阴码 顺向 逐行
 extern const unsigned char LOW_BATTERY[144];
