@@ -22,6 +22,11 @@ void voltage_check(void)
 	if(voltage-robot_msgs.voltage>BAT_RESOLUTION || robot_msgs.voltage-voltage>BAT_RESOLUTION)
 		robot_msgs.voltage = voltage;
 	
+<<<<<<< HEAD
+=======
+	robot_msgs.voltage = motor_msgs.velocity*10+8;
+	
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	if(robot_msgs.voltage<=LOW_VOLTAGE)
 		batteryState=BATTERY_ALARM;	
 	else if(robot_msgs.voltage>11.85)
@@ -81,16 +86,25 @@ void TIM1_UP_IRQHandler(void)
 	if(TIM_GetITStatus(TIM1,TIM_IT_Update)!=RESET)
 		TIM_ClearITPendingBit(TIM1,TIM_IT_Update);
 	
+<<<<<<< HEAD
 	sendFrame_Voltage_dpkg(&robot_msgs);
 	sendFrame_IMU_dpkg(&robot_msgs);
+=======
+	
+	
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	//time flag
 	++flag_500ms;
 	if(flag_500ms>50)
+<<<<<<< HEAD
 	{
 		MOTOR_L_DIR1=!MOTOR_L_DIR1;
 		flag_500ms=0;
 	}
+=======
+		flag_500ms=50;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 }
 
 

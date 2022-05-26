@@ -1,8 +1,13 @@
 #include "raspbot_comm.h"
 #include "string.h"
 #include "stm32f10x.h"
+<<<<<<< HEAD
 #include "crc8.h"
 #include "crc16.h"
+=======
+
+
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 
 /***** 数据解包结构体  *****/
 Stream_msgs               stream_msgs={0};
@@ -125,6 +130,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
   } 
 } 
 uint8_t bytesBuff[MAX_BUFF_SIZE]={0};
+<<<<<<< HEAD
 
 void setBuffHeaderCRC(uint8_t *buff,uint8_t value)
 {
@@ -142,6 +148,20 @@ void setBuffDpkgCRC(uint8_t *buff,uint16_t value)
 /*
  * @brief 发送机器状态信息(电压、编码器、IMU)
  */
+=======
+void setCRC(uint8_t *buff,uint16_t value)
+{
+#define crc_p1 3
+#define crc_p2 4
+	Bytes_U16 conv;
+	conv.number = value;
+	buff[crc_p1] = conv.bytes[0];
+	buff[crc_p2] = conv.bytes[1];
+#undef crc_p1 
+#undef crc_p2 
+}
+
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs)
 {
 	Frame_Robot_dpkg  frame;
@@ -149,7 +169,11 @@ void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs)
 	frame.header[0]=Header1;
 	frame.header[1]=Header2;
 	frame.len = robot_dpkg_len;
+<<<<<<< HEAD
 	frame.crc_header = 0;
+=======
+	frame.crc = 0;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	frame.robot_dpkg.data_tag = robot_tag;
 	
@@ -175,6 +199,7 @@ void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs)
 	frame.robot_dpkg.elu[1] = robot_msgs->elu[1];
 	frame.robot_dpkg.elu[2] = robot_msgs->elu[2];
 	
+<<<<<<< HEAD
 	frame.crc_dpkg = 0;
 	
 	
@@ -189,22 +214,35 @@ void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs)
 	setBuffHeaderCRC(&bytesBuff[FRAME_DPKG_LEN_OFFSET],crc8);
 	setBuffDpkgCRC(&bytesBuff[FRAME_INFO_SIZE+robot_dpkg_len],crc16);
 	
+=======
+	
+	int size = FRAME_INFO_SIZE+robot_dpkg_len;
+	
+	memcpy(bytesBuff,&frame,size);
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	for(int i=0;i<size;++i)
 	{
 		USART_SendData(USART1,bytesBuff[i]);
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
+<<<<<<< HEAD
 /*
  * @brief 发送IMU 加速度、角速度、磁力计[optional]和角度
  */
+=======
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 void sendFrame_IMU_dpkg(const Robot_msgs* robot_msgs)
 {
 	Frame_IMU_dpkg  frame;
 	frame.header[0]=Header1;
 	frame.header[1]=Header2;
 	frame.len = imu_dpkg_len;
+<<<<<<< HEAD
 	frame.crc_header = 0;
+=======
+	frame.crc = 0;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	frame.imu_dpkg.data_tag = imu_tag;
 	
@@ -225,6 +263,7 @@ void sendFrame_IMU_dpkg(const Robot_msgs* robot_msgs)
 	frame.imu_dpkg.elu[1] = robot_msgs->elu[1];
 	frame.imu_dpkg.elu[2] = robot_msgs->elu[2];
 	
+<<<<<<< HEAD
 	frame.crc_dpkg = 0;
 	
 	int size = FRAME_INFO_SIZE+imu_dpkg_len+FRAME_DPKG_CRC_BYTES;    //sizeof(*dpkg)
@@ -236,23 +275,34 @@ void sendFrame_IMU_dpkg(const Robot_msgs* robot_msgs)
 	setBuffHeaderCRC(&bytesBuff[FRAME_DPKG_LEN_OFFSET],crc8);
 	setBuffDpkgCRC(&bytesBuff[FRAME_INFO_SIZE+imu_dpkg_len],crc16);
 	
+=======
+	int size = FRAME_INFO_SIZE+imu_dpkg_len;    //sizeof(*dpkg)
+	memcpy(bytesBuff,&frame,size);
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	for(int i=0;i<size;++i)
 	{
 		USART_SendData(USART1,bytesBuff[i]);
 		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 	}
 }
+<<<<<<< HEAD
 
 /*
  * @brief 发送IMU 加速度、角速度和磁力计[optional]
  */
+=======
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 {
 	Frame_IMU_Sensor_dpkg 			frame;
 	frame.header[0]=Header1;
 	frame.header[1]=Header2;
 	frame.len = imu_sensor_dpkg_len;
+<<<<<<< HEAD
 	frame.crc_header = 0;
+=======
+	frame.crc = 0;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	frame.imu_sensor_dpkg.data_tag = imu_sensor_tag;
 	frame.imu_sensor_dpkg.acc[0] = robot_msgs->acc[0];
@@ -269,6 +319,7 @@ void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 	frame.imu_sensor_dpkg.mag[2] = robot_msgs->mag[2];
 #endif
 	
+<<<<<<< HEAD
 	frame.crc_dpkg = 0;
 	
 	int size = FRAME_INFO_SIZE+imu_sensor_dpkg_len+FRAME_DPKG_CRC_BYTES;   
@@ -280,6 +331,10 @@ void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 	setBuffHeaderCRC(&bytesBuff[FRAME_DPKG_LEN_OFFSET],crc8);
 	setBuffDpkgCRC(&bytesBuff[FRAME_INFO_SIZE+imu_sensor_dpkg_len],crc16);
 	
+=======
+	int size = FRAME_INFO_SIZE+imu_sensor_dpkg_len;   
+	memcpy(bytesBuff,&frame,size);
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	for(int i=0;i<size;++i)
 	{
 		USART_SendData(USART1,bytesBuff[i]);
@@ -287,21 +342,29 @@ void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 	}
 }
 
+<<<<<<< HEAD
 /*
  * @brief 发送电机编码器脉冲
  */
+=======
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs)
 {
 	Frame_Encoder_dpkg 				frame;
 	frame.header[0]=Header1;
 	frame.header[1]=Header2;
 	frame.len = encoder_dpkg_len;
+<<<<<<< HEAD
 	frame.crc_header = 0;
+=======
+	frame.crc = 0;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	frame.encoder_dpkg.data_tag = encoder_tag;
 	frame.encoder_dpkg.l_encoder_pulse = robot_msgs->l_encoder_pulse;
 	frame.encoder_dpkg.r_encoder_pulse = robot_msgs->r_encoder_pulse;
 	
+<<<<<<< HEAD
 	frame.crc_dpkg = 0;
 	
 	int size = FRAME_INFO_SIZE+encoder_dpkg_len+FRAME_DPKG_CRC_BYTES;    //sizeof(*dpkg)
@@ -314,6 +377,10 @@ void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs)
 	setBuffDpkgCRC(&bytesBuff[FRAME_INFO_SIZE+encoder_dpkg_len],crc16);
 	
 	
+=======
+	int size = FRAME_INFO_SIZE+encoder_dpkg_len;    //sizeof(*dpkg)
+	memcpy(bytesBuff,&frame,size);
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	for(int i=0;i<size;++i)
 	{
 		USART_SendData(USART1,bytesBuff[i]);
@@ -321,21 +388,29 @@ void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs)
 	}
 }
 
+<<<<<<< HEAD
 /*
  * @brief 发送电池电压
  */
+=======
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs)
 {
 	Frame_Voltage_dpkg 				frame;
 	frame.header[0]=Header1;
 	frame.header[1]=Header2;
 	frame.len = voltage_dpkg_len;
+<<<<<<< HEAD
 	frame.crc_header = 0;
+=======
+	frame.crc = 0;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	frame.voltage_dpkg.data_tag = voltage_tag;
 	
 	frame.voltage_dpkg.voltage = (uint8_t)(robot_msgs->voltage*10);
 	
+<<<<<<< HEAD
 	int size = FRAME_INFO_SIZE+voltage_dpkg_len+FRAME_DPKG_CRC_BYTES;    //sizeof(*dpkg)
 	memcpy(bytesBuff,&frame,size);
 	
@@ -346,6 +421,10 @@ void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs)
 	setBuffHeaderCRC(&bytesBuff[FRAME_DPKG_LEN_OFFSET],crc8);
 	setBuffDpkgCRC(&bytesBuff[FRAME_INFO_SIZE+voltage_dpkg_len],crc16);
 	
+=======
+	int size = FRAME_INFO_SIZE+voltage_dpkg_len;    //sizeof(*dpkg)
+	memcpy(bytesBuff,&frame,size);
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	for(int i=0;i<size;++i)
 	{
 		USART_SendData(USART1,bytesBuff[i]);
@@ -353,6 +432,7 @@ void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs)
 	
 	}
 }
+<<<<<<< HEAD
 
 /*
  * @brief 发送TAG数据包
@@ -455,5 +535,105 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
 //		USART_SendData(USART1,bytesBuff[i]);
 //		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
 //	}
+=======
+void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
+{
+#define sendRobot
+#define sendIMU
+#define sendIMUSensor
+#define sendEncoder
+#define sendVoltage
+	
+#if !defined (sendRobot) && !defined (sendIMU) && !defined (sendIMUSensor) && \
+		!defined (sendEncoder) && !defined (sendVoltage)
+	return;
+#endif
+	
+	Frame_Info frame;
+	frame.header[0]=Header1;
+	frame.header[1]=Header2;
+	frame.len = 0;
+	frame.crc = 0;
+	
+#ifdef sendRobot
+	Robot_dpkg          robot_dpkg;
+	frame.len+=robot_dpkg_len;
+#endif /*  Robot_dpkg  */
+#ifdef sendIMU
+	IMU_dpkg            imu_dpkg;
+	frame.len+=imu_dpkg_len;
+#endif /*  IMU_dpkg  */
+#ifdef sendIMUSensor
+	IMU_Sensor_dpkg 		imu_sensor_dpkg;
+	frame.len+=imu_sensor_dpkg_len;
+#endif /*  IMU_Sensor_dpkg */
+#ifdef sendEncoder
+	Encoder_dpkg 				encoder_dpkg;
+	frame.len+=encoder_dpkg_len;
+#endif /*  Encoder_dpkg   */
+#ifdef sendVoltage
+	Voltage_dpkg 				voltage_dpkg;
+	frame.len+=voltage_dpkg_len;
+#endif /*  Voltage_dpkg   */
+
+	int size = FRAME_INFO_SIZE+frame.len;
+	if(size>MAX_BUFF_SIZE) return;
+	
+	memcpy(bytesBuff,&frame,FRAME_INFO_SIZE);
+	
+#ifdef sendRobot
+	robot_dpkg.data_tag = robot_tag;
+	
+	robot_dpkg.voltage =(uint8_t)(robot_msgs->voltage*10);
+	
+	robot_dpkg.l_encoder_pulse = robot_msgs->l_encoder_pulse;
+	robot_dpkg.r_encoder_pulse = robot_msgs->r_encoder_pulse;
+   	
+	robot_dpkg.acc[0] = robot_msgs->acc[0];
+	robot_dpkg.acc[1] = robot_msgs->acc[1];
+	robot_dpkg.acc[2] = robot_msgs->acc[2];
+	
+	robot_dpkg.gyr[0] = robot_msgs->gyr[0];
+	robot_dpkg.gyr[1] = robot_msgs->gyr[1];
+	robot_dpkg.gyr[2] = robot_msgs->gyr[2];
+
+	
+	#ifdef imu_mag
+	robot_dpkg.mag[0] = robot_msgs->mag[0];
+	robot_dpkg.mag[1] = robot_msgs->mag[1];
+	robot_dpkg.mag[2] = robot_msgs->mag[2];
+	#endif
+	robot_dpkg.elu[0] = robot_msgs->elu[0];
+	robot_dpkg.elu[1] = robot_msgs->elu[1];
+	robot_dpkg.elu[2] = robot_msgs->elu[2];
+	
+	memcpy(bytesBuff,&robot_dpkg,FRAME_INFO_SIZE);
+	
+#endif /*  Robot_dpkg  */
+#ifdef sendIMU
+
+
+#endif /*  IMU_dpkg  */
+#ifdef sendIMUSensor
+
+
+#endif /*  IMU_Sensor_dpkg */
+#ifdef sendEncoder
+
+
+#endif /*  Encoder_dpkg   */
+#ifdef sendVoltage
+
+#endif /*  Voltage_dpkg   */
+	
+	
+
+	
+	for(int i=0;i<size;++i)
+	{
+		USART_SendData(USART1,bytesBuff[i]);
+		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
+	}
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 }

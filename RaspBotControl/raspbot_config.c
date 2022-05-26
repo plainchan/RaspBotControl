@@ -521,6 +521,11 @@ void board_configInit(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC, ENABLE);
 	
 	NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
+<<<<<<< HEAD
+=======
+	
+	
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	
 	
 	
@@ -534,8 +539,12 @@ void board_configInit(void)
 	OLED_Clear();
 	
 	motor_init();
+<<<<<<< HEAD
 	UART1_Init(115200);
 	TIM1_IT_Init(10);         /* must initialize after usart,because send data in interrupts */
+=======
+	TIM1_IT_Init(10);
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	TIM2_PWM_Init();
 	adc_init();
 	

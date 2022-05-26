@@ -314,12 +314,21 @@ void oled_print(unsigned char x,unsigned char y,u8 ch[])
 	}
 }
 
+<<<<<<< HEAD
 void oled_digit(u8 x,u8 y,long long num,u8 totalLen,u8 size)
 {
 	for(int i=0;i<totalLen;++i)
 		oled_char(x+i*size/2,y,' ',size,1);
 	unsigned long long integer = llabs(num);
 	unsigned long long base =1;
+=======
+void oled_digit(u8 x,u8 y,int num,u8 totalLen,u8 size)
+{
+	for(int i=0;i<totalLen;++i)
+		oled_char(x+i*size/2,y,' ',size,1);
+	u32 integer = abs(num);
+	u32 base=1;
+>>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	while(base <= integer/10)
 	{
 		base*=10;
