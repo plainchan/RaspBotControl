@@ -150,14 +150,9 @@ __packed typedef struct
 {
     uint8_t           header[2];
     uint8_t           len;
-<<<<<<< HEAD
     uint8_t          	crc_header;
     Voltage_dpkg      voltage_dpkg;  //size = 5+2 
 		uint16_t          crc_dpkg;
-=======
-    uint16_t          crc;
-    Voltage_dpkg      voltage_dpkg;  //size = 5+2 
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 }Frame_Voltage_dpkg;
 
 /**
@@ -195,14 +190,9 @@ __packed typedef struct
 {
     uint8_t            header[2];
     uint8_t            len;
-<<<<<<< HEAD
     uint8_t            crc_header;
     IMU_Sensor_dpkg    imu_sensor_dpkg;  //size = 37+5 
 		uint16_t           crc_dpkg;
-=======
-    uint16_t           crc;
-    IMU_Sensor_dpkg    imu_sensor_dpkg;  //size = 37+5 
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 
 }Frame_IMU_Sensor_dpkg;
 
@@ -277,14 +267,9 @@ __packed typedef struct
 {
     uint8_t      header[2];
     uint8_t      len;
-<<<<<<< HEAD
     uint8_t      crc_header;
     Robot_dpkg   robot_dpkg;  //size = 42+5 or 54+5 
 		uint16_t          crc_dpkg;
-=======
-    uint16_t     crc;
-    Robot_dpkg   robot_dpkg;  //size = 42+5 or 54+5 
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 
 }Frame_Robot_dpkg;
 
@@ -306,38 +291,10 @@ void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs);
  * @note   波特率115200 理论发送时间≈实际发送时间=3.6ms(None mag)4.6ms(with mag)
  */
 void sendFrame_IMU_dpkg(const Robot_msgs* robot_msgs);
-<<<<<<< HEAD
 
 /**
  * @brief
  * @param[in] 
- * @note  波特率115200 理论发送时间≈实际发送时间=2.6ms(None mag)3.6ms(with mag)
- */
-void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs);
-
-/**
- * @brief
- * @param[in] 
- * @note   波特率115200 理论发送时间≈实际发送时间=0.88ms   
- */
-void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs);
-
-/**
- * @brief
- * @param[in] 
- * @note   波特率115200 理论发送时间≈实际发送时间=0.61ms   
- */
-void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs);
-=======
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
-
-/**
- * @brief
- * @param[in] 
-<<<<<<< HEAD
- * @note  
- */
-=======
  * @note  波特率115200 理论发送时间≈实际发送时间=2.6ms(None mag)3.6ms(with mag)
  */
 void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs);
@@ -361,7 +318,6 @@ void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs);
  * @param[in] 
  * @note  
  */
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs);
 //-----------------------------------------
 
