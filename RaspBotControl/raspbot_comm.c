@@ -457,3 +457,74 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
 //	}
 	
 }
+
+
+/**
+ * @brief 串口读取IMU数据
+ * 
+ */
+
+void USART2_IRQHandler(void)                	//串口1中断服务程序
+{
+	static uint8_t buff[11]={0};
+	static uint8_t count=0;
+	static uint16_t checksum=0x55;
+
+	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+	{
+		buff[count++] = USART_ReceiveData(USART2);
+
+		if(count==1 && buff[0]!=0x55 )  //检查帧头
+		{
+			count = 0;
+			return;
+		}
+		else if(count<=10)
+		{
+			checksum+=buff[count-1];  //header+acc+gyr
+			if(count == 10)
+			{
+				checksum = !(checksum>>8+checksum&0x00FF);
+			}
+		}
+		else if(count>10)
+		{
+			count=0;
+
+			if(checksum!=buff[10]) 
+			{
+				checksum = 0x55;
+				return;
+			}/* 校验错误 */
+			checksum = 0x55;
+
+			switch (buff[1])            //标签
+			{
+			case 0x51:  
+				/* 加速度 */
+				Bytes2INT16Conv(&buff[2]);
+				Bytes2INT16Conv(&buff[4]);
+				Bytes2INT16Conv(&buff[6]);
+		
+				break;
+			case 0x52:  
+				/* 角速度 */
+				Bytes2INT16Conv(&buff[2]);
+				Bytes2INT16Conv(&buff[4]);
+				Bytes2INT16Conv(&buff[6]);
+				break;
+			case 0x53:  
+				/* 角度 */
+				Bytes2INT16Conv(&buff[2]);
+				Bytes2INT16Conv(&buff[4]);
+				Bytes2INT16Conv(&buff[6]);
+				break;			
+			default:
+				break;
+			}
+
+
+		}
+		
+  	} 
+} 

@@ -22,7 +22,7 @@ typedef enum
 }Battery;
 
 /**
- * @brief status of robot 
+ * @brief params of robot 
  */
 typedef struct  Robot_Sensor_Params
 {
@@ -39,12 +39,12 @@ typedef struct  Robot_Sensor_Params
 }Robot_msgs; 
 
 /**
- * @brief status of Motor 
+ * @brief params of Motor 
  */
 typedef struct  Motor_Controlled_Params
 {
-		float      velocity;    //
-		float      yaw;         //
+	float      velocity;    //
+	float      yaw;         //
     int16_t    CtrlPulseL;
     int16_t    CtrlPulseR;
 }Motor_msgs; 
@@ -55,6 +55,13 @@ typedef struct
 	float I;
 	float D;
 }PID;
+
+typedef struct
+{
+	int16_t P;
+	int16_t I;
+	int16_t D;
+}IMU_Raw_msg;
 
 extern  Robot_msgs robot_msgs;
 extern  Motor_msgs motor_msgs;

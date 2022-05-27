@@ -226,7 +226,7 @@ __packed typedef struct
  */
 __packed typedef struct IMU_Acc_Gyr_Mag_Register_msg
 {
-	  uint8_t    data_tag;
+	uint8_t    data_tag;
     int16_t      acc[3];
     int16_t      gyr[3];
 #ifdef     imu_mag
