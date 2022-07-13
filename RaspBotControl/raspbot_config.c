@@ -86,13 +86,17 @@ void TIM3_PWM_Init(void)
 	TIM_OCInitTypeDef TIM_OCInitTypeStruct;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE); //使能APB1 TIM3,PB0
-
-	//引脚复用 PB0
+	
+	//引脚复用 CH1 PA6  CH2 PA7
 	GPIO_InitTypeStruct.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_InitTypeStruct.GPIO_Pin = GPIO_Pin_0;
+	GPIO_InitTypeStruct.GPIO_Pin = GPIO_Pin_6|GPIO_Pin_7;   
 	GPIO_InitTypeStruct.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitTypeStruct);
+	//引脚复用 CH3 PB0  CH4 PB1
+	GPIO_InitTypeStruct.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1;   
 	GPIO_Init(GPIOB, &GPIO_InitTypeStruct);
-
+	
+	
 	//定时器
 	TIM_TimeBaseInitTypeStruct.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseInitTypeStruct.TIM_CounterMode = TIM_CounterMode_Up;
@@ -105,9 +109,12 @@ void TIM3_PWM_Init(void)
 	TIM_OCInitTypeStruct.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitTypeStruct.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitTypeStruct.TIM_OCPolarity = TIM_OCPolarity_High;
-	TIM_OCInitTypeStruct.TIM_Pulse = 500; //占空比
-
+	TIM_OCInitTypeStruct.TIM_Pulse = 0; //占空比
+	
+	TIM_OC1Init(TIM3, &TIM_OCInitTypeStruct); // CH1
+	TIM_OC2Init(TIM3, &TIM_OCInitTypeStruct); // CH2
 	TIM_OC3Init(TIM3, &TIM_OCInitTypeStruct); // CH3
+	TIM_OC4Init(TIM3, &TIM_OCInitTypeStruct); // CH4
 
 	//高级定时器必须要配置，否则无法输出P波
 	//	TIM_CtrlPWMOutputs(TIM3,ENABLE);   //高级定时器  使能刹车和死区寄存器 MOE使能
@@ -166,99 +173,81 @@ void TIM4_PWM_Init(void)
 	TIM_Cmd(TIM4, ENABLE);
 }
 
+////////////////////////
+void MOTOR_L_ENABLE(FunctionalState state)
+{
+	if(state)
+		MOTOR_EN_L=1;
+	else
+		MOTOR_EN_L=0;
+}
+void MOTOR_R_ENABLE(FunctionalState state)
+{
+	if(state)
+		MOTOR_EN_R=1;
+	else
+		MOTOR_EN_R=0;
+}
+void MOTOR_ENABLE(FunctionalState state)
+{
+	MOTOR_L_ENABLE(state);
+	MOTOR_R_ENABLE(state);
+}
 /**
  * @brief  电机IO初始化
  */
 void motor_init(void)
 {
-	//电机方向控制端口
-	//左电机 A4 A5
-	//右电机 B9 C13
+	//电机使能控制端口
+	//左电机 A4
+	//右电机 B2
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	GPIO_InitStructure.GPIO_Pin = MOTOR_L_DIR_PIN1 | MOTOR_L_DIR_PIN2;
+	GPIO_InitStructure.GPIO_Pin = MOTOR_EN_L_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOA, MOTOR_L_DIR_PIN1 | MOTOR_L_DIR_PIN2);
-	//	GPIO_PinLockConfig(GPIOA,MOTOR_L_DIR_PIN1|MOTOR_L_DIR_PIN2);
-
-	GPIO_InitStructure.GPIO_Pin = MOTOR_R_DIR_PIN1;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//	GPIO_ResetBits(GPIOA, MOTOR_EN_L_PIN);
+	
+	GPIO_InitStructure.GPIO_Pin =MOTOR_EN_R_PIN;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOB, MOTOR_R_DIR_PIN1);
+//	GPIO_ResetBits(GPIOB,MOTOR_EN_R_PIN);
+	
+	//	GPIO_PinLockConfig(GPIOA,MOTOR_EN_L_PIN);
+	TIM3_PWM_Init();
+	MOTOR_ENABLE(ENABLE);
 
-	GPIO_InitStructure.GPIO_Pin = MOTOR_R_DIR_PIN2;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
-	GPIO_ResetBits(GPIOC, MOTOR_R_DIR_PIN2);
-
-	//电机PWM 端口
-	//左 PB0 TIM3_CH3
-	//右 PB8 TIM4_CH3
-	//	TIM3_PWM_Init();
-	//	TIM4_PWM_Init();
 }
 
-/////////////////////////电机正反转///////////////////////
-void motor_L_stop(void)
-{
-	MOTOR_L_DIR1 = 0;
-	MOTOR_L_DIR2 = 0;
-}
-void motor_L_forward(void)
-{
-	MOTOR_L_DIR1 = 1;
-	MOTOR_L_DIR2 = 0;
-}
-void motor_L_reverse(void)
-{
-	MOTOR_L_DIR1 = 0;
-	MOTOR_L_DIR2 = 1;
-}
 
-void motor_R_stop(void)
-{
-	MOTOR_R_DIR1 = 0;
-	MOTOR_R_DIR2 = 0;
-}
-void motor_R_forward(void)
-{
-	MOTOR_R_DIR1 = 1;
-	MOTOR_R_DIR2 = 0;
-}
-void motor_R_reverse(void)
-{
-	MOTOR_R_DIR1 = 0;
-	MOTOR_R_DIR2 = 1;
-}
-
-void motor_forward(void)
-{
-	motor_L_forward();
-	motor_R_forward();
-}
-void motor_reverse(void)
-{
-	motor_L_reverse();
-	motor_R_reverse();
-}
-void motor_stop(void)
-{
-	motor_L_stop();
-	motor_R_stop();
-}
 
 /**
  * @brief  电机PWM控制
- * @param  duty_L：左电机PWM <=1000   duty_R：右电机PWM <=1000
+ * @param  duty_L：左电机PWM <=1000   duty_R：右电机PWM <=1000  
  */
-void motor_pwm(uint16_t duty_L, uint16_t duty_R)
+void motor_pwm(int16_t duty_L, int16_t duty_R)
 {
-	TIM_SetCompare3(TIM3, duty_L);
-	TIM_SetCompare3(TIM4, duty_R);
+	if(duty_L>=0)
+	{	
+		TIM_SetCompare1(TIM3, duty_L);
+		TIM_SetCompare2(TIM3, 0);
+	}
+	else
+	{
+		TIM_SetCompare1(TIM3, 0);
+		TIM_SetCompare2(TIM3, -duty_L);
+	}
+	
+	if(duty_R>=0)
+	{	
+		TIM_SetCompare3(TIM3, 0);
+		TIM_SetCompare4(TIM3, duty_R);
+	}
+	else
+	{
+		TIM_SetCompare3(TIM3, -duty_R);
+		TIM_SetCompare4(TIM3, 0);
+	}
 }
 
 /**
@@ -303,17 +292,14 @@ void encoder_init(void)
 	TIM_ClearFlag(TIM4, TIM_FLAG_Update); //清除TIM的更新标志位
 	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 
-
-	
-
 	NVIC_InitTypeStruct.NVIC_IRQChannel = TIM3_IRQn;
-	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 4;
+	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 3;
 	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitTypeStruct.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitTypeStruct);
 
 	NVIC_InitTypeStruct.NVIC_IRQChannel = TIM4_IRQn;
-	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 4;
+	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 3;
 	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority = 1;
 	NVIC_InitTypeStruct.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitTypeStruct);
@@ -373,9 +359,9 @@ void adc_init()
 	RCC_ADCCLKConfig(RCC_PCLK2_Div6); // ADC时钟 72/6=12MHZ,超过14MHZ精度会变低
 	ADC_DeInit(ADC1);				  //复位时钟
 
-	//引脚 PB1
+	//引脚 PA5
 	GPIO_InitTypeStruct.GPIO_Mode = GPIO_Mode_AIN; //引脚模拟输入
-	GPIO_InitTypeStruct.GPIO_Pin = GPIO_Pin_1;
+	GPIO_InitTypeStruct.GPIO_Pin = GPIO_Pin_5;
 	//	GPIO_InitTypeStruct.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOB, &GPIO_InitTypeStruct);
 
@@ -399,7 +385,7 @@ void adc_init()
 u16 getAnalogValue()
 {
 	//设置指定ADC的规则组通道，一个序列，采样时间
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime_239Cycles5); // ADC1,ADC通道,采样时间为239.5周期
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_5, 1, ADC_SampleTime_239Cycles5); // ADC1,ADC通道,采样时间为239.5周期
 
 	ADC_SoftwareStartConvCmd(ADC1, ENABLE); //使能指定的ADC1的软件转换启动功能
 	while (!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC))
@@ -420,7 +406,7 @@ void UART1_Init(u32 baud)
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1 | RCC_APB2Periph_GPIOA, ENABLE); //使能USART1，GPIOA时钟
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE); //使能USART1，GPIOA时钟
 
 	// USART1_TX   GPIOA.9
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9; // PA.9
@@ -430,7 +416,7 @@ void UART1_Init(u32 baud)
 
 	// USART1_RX	  GPIOA.10初始化
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;			  // PA10
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //浮空输入
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;    //上拉
 	GPIO_Init(GPIOA, &GPIO_InitStructure);				  //初始化GPIOA.10
 
 	// Usart1 NVIC 配置
@@ -454,10 +440,7 @@ void UART1_Init(u32 baud)
 	USART_Cmd(USART1, ENABLE);
 }
 
-/**
- *
- *
- */
+
 void UART2_Init(u32 baud)
 {
 	// GPIO端口设置
@@ -465,21 +448,22 @@ void UART2_Init(u32 baud)
 	USART_InitTypeDef USART_InitStructure;
 	NVIC_InitTypeDef NVIC_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB1Periph_USART2 | RCC_APB2Periph_GPIOA, ENABLE); //使能USART1，GPIOA时钟
-
-	// USART2_TX   GPIOA.9
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2; // PA.9
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE); //使能USART2
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+	
+	// USART2_TX   GPIOA.2
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2; // PA.2
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP; //复用推挽输出
-	GPIO_Init(GPIOA, &GPIO_InitStructure);			//初始化GPIOA.9
+	GPIO_Init(GPIOA, &GPIO_InitStructure);			   //初始化GPIOA.2
 
-	// USART2_RX	  GPIOA.10初始化
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;			  // PA10
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING; //浮空输入
-	GPIO_Init(GPIOA, &GPIO_InitStructure);				  //初始化GPIOA.10
+	// USART2_RX	  GPIOA.3
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;			  // PA.3
+	GPIO_InitStructure.GPIO_Mode =GPIO_Mode_IPD;   //上拉
+	GPIO_Init(GPIOA, &GPIO_InitStructure);				  //初始化GPIOA.3
 
 	// Usart1 NVIC 配置
-	NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2; //抢占优先级3
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;		  //子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
@@ -500,6 +484,65 @@ void UART2_Init(u32 baud)
 }
 
 /**
+ *
+ *
+ */
+void UART3_Init(u32 baud)
+{
+	// GPIO端口设置
+	GPIO_InitTypeDef GPIO_InitStructure;
+	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART3, ENABLE);   //使能USART1，GPIOA时钟
+
+	// USAR3_TX   GPIOB.10
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10; // PB.10
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP; //复用推挽输出
+	GPIO_Init(GPIOB, &GPIO_InitStructure);			//初始化GPIOB.10
+
+	// UART3_RX	  GPIOB.11初始化
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_11;			// PB.11
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;   //上拉
+	GPIO_Init(GPIOB, &GPIO_InitStructure);				  //初始化GPIOB.11
+
+	// Usart1 NVIC 配置
+	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //抢占优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		  //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
+	NVIC_Init(&NVIC_InitStructure);							  //根据指定的参数初始化VIC寄存器
+
+	// USART 初始化设置
+
+	USART_InitStructure.USART_BaudRate = baud;										//串口波特率
+	USART_InitStructure.USART_WordLength = USART_WordLength_8b;						//字长为8位数据格式
+	USART_InitStructure.USART_StopBits = USART_StopBits_1;							//一个停止位
+	USART_InitStructure.USART_Parity = USART_Parity_No;								//无奇偶校验位
+	USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None; //无硬件数据流控制
+	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;					//收发模式
+
+	USART_Init(USART3, &USART_InitStructure);	   //初始化串口1
+	USART_ITConfig(USART3, USART_IT_RXNE, ENABLE); //开启串口接收中断
+	USART_Cmd(USART3, ENABLE);
+}
+
+/**
+ * @brief  状态指示灯
+ */
+void stateLED_init()
+{
+	GPIO_InitTypeDef GPIO_InitStructure;
+	
+	//  GPIOC.13
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13;         // PC.13
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;  //复用推挽输出
+	GPIO_Init(GPIOC, &GPIO_InitStructure);			      //初始化GPIOC.13
+}
+
+/**
  * @brief  board IO initial
  */
 void board_configInit(void)
@@ -511,7 +554,7 @@ void board_configInit(void)
 
 	//	SystemInit();
 	delay_init();
-
+	stateLED_init();
 	oled_init();
 	oled_picture(0, 0, 128, 64, start_bmp);
 	oled_update();
@@ -519,12 +562,13 @@ void board_configInit(void)
 	OLED_Clear();
 
 	motor_init();
-	UART1_Init(115200);
+	UART1_Init(115200);    // 通信串口
+	UART2_Init(115200);    // IMU串口
+	UART3_Init(115200);    // 串口3引出端口
 	TIM1_IT_Init(10); /* must initialize after usart,because send data in interrupts */
 	TIM2_PWM_Init();
 	adc_init();
 
-	//	motor_stop();
-	//	motor_pwm(500,500);
-	//	encoder_init();
+//	encoder_init();
+	motor_pwm(500,500);
 }

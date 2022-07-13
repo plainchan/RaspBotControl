@@ -2,9 +2,11 @@
 #include "raspbot_config.h"
 #include "raspbot_comm.h"
 
-Robot_msgs robot_msgs={0};
-Motor_msgs motor_msgs={0.0,0.0,0,0};
-
+/* global params */
+Robot_msgs     robot_msgs={0};
+Motor_msgs     motor_msgs={0.0,0.0,0,0};
+IMU_Raw_msg    imu_raw_msg={0};
+PID            pid={0};
 Battery batteryState=BATTERY_FULL;
 
 /* time flag */
@@ -81,14 +83,11 @@ void TIM1_UP_IRQHandler(void)
 	if(TIM_GetITStatus(TIM1,TIM_IT_Update)!=RESET)
 		TIM_ClearITPendingBit(TIM1,TIM_IT_Update);
 	
-	sendFrame_Voltage_dpkg(&robot_msgs);
-	sendFrame_IMU_dpkg(&robot_msgs);
-	
 	//time flag
 	++flag_500ms;
 	if(flag_500ms>50)
 	{
-		MOTOR_L_DIR1=!MOTOR_L_DIR1;
+		STATE_LED=!STATE_LED;
 		flag_500ms=0;
 	}
 }

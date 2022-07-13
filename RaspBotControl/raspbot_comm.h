@@ -39,7 +39,7 @@
 #include "stdint.h"
 #include "raspbot_control.h"
 
-#define imu_mag
+//#define imu_mag
 
 /**
  *  串口传输缓冲区最大大小
@@ -80,11 +80,13 @@
 #ifdef   imu_mag
 #define robot_dpkg_len       (uint8_t)54		 
 #define imu_dpkg_len         (uint8_t)49    
-#define imu_sensor_dpkg_len  (uint8_t)37    
+#define imu_sensor_dpkg_len  (uint8_t)37  
+#define imu_raw_dpkg_len     (uint8_t)25
 #else
 #define robot_dpkg_len       (uint8_t)42    
 #define imu_dpkg_len         (uint8_t)37   
 #define imu_sensor_dpkg_len  (uint8_t)25    
+#define imu_raw_dpkg_len     (uint8_t)19
 #endif
 
 #define voltage_dpkg_len    (uint8_t)0x02
@@ -94,11 +96,14 @@
 #define encoder_tag              0xC0
 #define imu_tag                  0xD0
 #define imu_sensor_tag           0xD1
+#define imu_raw_tag              0xD2
 #define voltage_tag              0xE0
 
 extern volatile int  receiveFlag;
 
+extern short imu_ready_flag;
 
+/* uinon 共用体bytes转换成数据 */
 typedef union 
 {
   uint8_t bytes[4];
@@ -120,11 +125,13 @@ typedef union
 	uint8_t    bytes[4];
 	uint32_t   number;
 }Bytes_U32;
+//-----------------------------------------
 
+/* bytes转换成数据函数  */
 float Bytes2FloatConv(const uint8_t* buff);
 int16_t Bytes2INT16Conv(const uint8_t* buff);
 uint16_t Bytes2U16Conv(const uint8_t* buff);
-
+//-----------------------------------------
 
 /***********数据封包结构体定义***********/
 
@@ -220,19 +227,18 @@ __packed typedef struct
 
 }Frame_IMU_dpkg;
 
-
 /**
  * @brief IMU寄存器原生数据
  */
 __packed typedef struct IMU_Acc_Gyr_Mag_Register_msg
 {
-	uint8_t    data_tag;
-    int16_t      acc[3];
-    int16_t      gyr[3];
+	  uint8_t    data_tag;
+    int16_t      accRaw[3];
+    int16_t      gyrRaw[3];
 #ifdef     imu_mag
-    int16_t      mag[3];
+    int16_t      magRaw[3];
 #endif
-    int16_t      elu[3];
+    int16_t      eluRaw[3];
 }IMU_Raw_dpkg;                  //size = 37 or 49     
 __packed typedef struct 
 {
@@ -241,11 +247,7 @@ __packed typedef struct
     uint8_t      		crc_header;
     IMU_Raw_dpkg   	imu_raw_dpkg;  //size = 37+5 or 49+5 
 		uint16_t     	  crc_dpkg;
-
 }Frame_IMU_Raw_dpkg;
-
-
-
 
 /**
  * @brief status of robot 
@@ -272,7 +274,21 @@ __packed typedef struct
 		uint16_t          crc_dpkg;
 
 }Frame_Robot_dpkg;
+//-----------------------------------------
 
+
+/***********数据解包结构体定义***********/
+
+typedef struct
+{
+
+	uint8_t      len;
+  uint16_t     crc;
+	uint8_t      stream_buff[MAX_BUFF_SIZE];
+}Stream_msgs;
+
+extern Stream_msgs               stream_msgs;
+//-----------------------------------------
 
 
 
@@ -302,6 +318,13 @@ void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs);
 /**
  * @brief
  * @param[in] 
+ * @note  
+ */
+void sendFrame_IMU_Raw_dpkg(const IMU_Raw_msg* imu_raw_msg);
+
+/**
+ * @brief
+ * @param[in] 
  * @note   波特率115200 理论发送时间≈实际发送时间=0.88ms   
  */
 void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs);
@@ -323,20 +346,7 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs);
 
 
 
-/***********数据解包结构体定义***********/
-
-typedef struct
-{
-
-	uint8_t      len;
-  uint16_t     crc;
-	uint8_t      stream_buff[MAX_BUFF_SIZE];
-}Stream_msgs;
-
-extern Stream_msgs               stream_msgs;
-
-//-----------------------------------------
-
+/* 数据流解包 */
 
 /**
  * @brief    将数据流缓冲到Buff,数据流中可能只包含半帧或者多帧数据
@@ -363,5 +373,11 @@ int parse_stream(Stream_msgs *stream_msgs,uint8_t buff);
  *          -1  帧错误
  */
 int decode_frame(Stream_msgs *stream_msgs);
+//-----------------------------------------
+
+
+
+
 #endif
+
 

@@ -49,11 +49,7 @@ void oled_str(u8 x,u8 y,const u8 *p,u8 size);
 void oled_print(unsigned char x,unsigned char y,unsigned char ch[]);
 void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size);
 void oled_picture(u8 x,u8 y,u8 w,u8 h,const unsigned char *bmp);
-<<<<<<< HEAD
 void oled_digit(u8 x,u8 y,long long num,u8 totalLen,u8 size);
-=======
-void oled_digit(u8 x,u8 y,int num,u8 totalLen,u8 size);
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 
 //Í¼Æ¬ ÒõÂë Ë³Ïò ÖğĞĞ
 extern const unsigned char LOW_BATTERY[144];

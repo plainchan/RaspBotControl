@@ -288,6 +288,54 @@ void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 }
 
 /*
+ * @brief 发送IMU 加速度、角速度、磁力计[optional]和角度
+ */
+void sendFrame_IMU_Raw_dpkg(const IMU_Raw_msg* imu_raw_msg)
+{
+	Frame_IMU_Raw_dpkg  frame;
+	frame.header[0]=Header1;
+	frame.header[1]=Header2;
+	frame.len = imu_raw_dpkg_len;
+	frame.crc_header = 0;
+	
+	frame.imu_raw_dpkg.data_tag = imu_raw_tag;
+	
+	frame.imu_raw_dpkg.accRaw[0] = imu_raw_msg->accRaw[0];
+	frame.imu_raw_dpkg.accRaw[1] = imu_raw_msg->accRaw[1];
+	frame.imu_raw_dpkg.accRaw[2] = imu_raw_msg->accRaw[2];
+	
+	frame.imu_raw_dpkg.gyrRaw[0] = imu_raw_msg->gyrRaw[0];
+	frame.imu_raw_dpkg.gyrRaw[1] = imu_raw_msg->gyrRaw[1];
+	frame.imu_raw_dpkg.gyrRaw[2] = imu_raw_msg->gyrRaw[2];
+	
+#ifdef imu_mag
+	frame.imu_raw_dpkg.magRaw[0] = imu_raw_msg->magRaw[0];
+	frame.imu_raw_dpkg.magRaw[1] = imu_raw_msg->magRaw[1];
+	frame.imu_raw_dpkg.magRaw[2] = imu_raw_msg->magRaw[2];
+#endif
+	frame.imu_raw_dpkg.eluRaw[0] = imu_raw_msg->eluRaw[0];
+	frame.imu_raw_dpkg.eluRaw[1] = imu_raw_msg->eluRaw[1];
+	frame.imu_raw_dpkg.eluRaw[2] = imu_raw_msg->eluRaw[2];
+	
+	frame.crc_dpkg = 0;
+	
+	int size = FRAME_INFO_SIZE+imu_raw_dpkg_len+FRAME_DPKG_CRC_BYTES;    //sizeof(*dpkg)
+	memcpy(bytesBuff,&frame,size);
+	
+	/* reset crc value */
+	uint8_t crc8 = crc_8(bytesBuff,FRAME_CALCU_CRC_BYTES);
+	uint16_t crc16 = crc_16(&bytesBuff[FRAME_HEAD_CRC_OFFSET],imu_raw_dpkg_len);
+	setBuffHeaderCRC(&bytesBuff[FRAME_DPKG_LEN_OFFSET],crc8);
+	setBuffDpkgCRC(&bytesBuff[FRAME_INFO_SIZE+imu_raw_dpkg_len],crc16);
+	
+	for(int i=0;i<size;++i)
+	{
+		USART_SendData(USART1,bytesBuff[i]);
+		while(USART_GetFlagStatus(USART1,USART_FLAG_TXE) == RESET);
+	}
+}
+
+/*
  * @brief 发送电机编码器脉冲
  */
 void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs)
@@ -463,7 +511,7 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
  * @brief 串口读取IMU数据
  * 
  */
-
+short imu_ready_flag=0;
 void USART2_IRQHandler(void)                	//串口1中断服务程序
 {
 	static uint8_t buff[11]={0};
@@ -473,7 +521,6 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 	{
 		buff[count++] = USART_ReceiveData(USART2);
-
 		if(count==1 && buff[0]!=0x55 )  //检查帧头
 		{
 			count = 0;
@@ -484,47 +531,106 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 			checksum+=buff[count-1];  //header+acc+gyr
 			if(count == 10)
 			{
-				checksum = !(checksum>>8+checksum&0x00FF);
+				checksum = !(checksum>>8|(checksum&0x00FF));
 			}
 		}
 		else if(count>10)
 		{
 			count=0;
 
-			if(checksum!=buff[10]) 
-			{
-				checksum = 0x55;
-				return;
-			}/* 校验错误 */
+//			if(checksum!=buff[10]) 
+//			{
+//				checksum = 0x55;
+//				return;
+//			}/* 校验错误 */
 			checksum = 0x55;
 
 			switch (buff[1])            //标签
 			{
 			case 0x51:  
-				/* 加速度 */
-				Bytes2INT16Conv(&buff[2]);
-				Bytes2INT16Conv(&buff[4]);
-				Bytes2INT16Conv(&buff[6]);
-		
-				break;
+				imu_raw_msg.accRaw[0]=Bytes2INT16Conv(&buff[2]);
+				imu_raw_msg.accRaw[1]=Bytes2INT16Conv(&buff[4]);
+				imu_raw_msg.accRaw[2]=Bytes2INT16Conv(&buff[6]);
+				imu_ready_flag|=0xf000;
+				break;  /* 加速度 */
 			case 0x52:  
-				/* 角速度 */
-				Bytes2INT16Conv(&buff[2]);
-				Bytes2INT16Conv(&buff[4]);
-				Bytes2INT16Conv(&buff[6]);
-				break;
+				imu_raw_msg.gyrRaw[0]=Bytes2INT16Conv(&buff[2]);
+				imu_raw_msg.gyrRaw[1]=Bytes2INT16Conv(&buff[4]);
+				imu_raw_msg.gyrRaw[2]=Bytes2INT16Conv(&buff[6]);
+				imu_ready_flag|=0x0f00;
+				break;	/* 角速度 */
 			case 0x53:  
-				/* 角度 */
-				Bytes2INT16Conv(&buff[2]);
-				Bytes2INT16Conv(&buff[4]);
-				Bytes2INT16Conv(&buff[6]);
-				break;			
+				imu_raw_msg.eluRaw[0]=Bytes2INT16Conv(&buff[2]);
+				imu_raw_msg.eluRaw[1]=Bytes2INT16Conv(&buff[4]);
+				imu_raw_msg.eluRaw[2]=Bytes2INT16Conv(&buff[6]);
+				imu_ready_flag|=0x00f0;
+				break;	/* 角度 */	
 			default:
 				break;
-			}
-
-
+			}  /* switch */
+			
 		}
-		
-  	} 
+	} 
+} 
+
+/**
+ * @brief 串口3引出端口
+ */
+void USART3_IRQHandler(void)                	//串口1中断服务程序
+{
+//	static uint8_t buff[11]={0};
+//	static uint8_t count=0;
+//	static uint16_t checksum=0x55;
+//	++a;
+//	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+//	{
+//		buff[count++] = USART_ReceiveData(USART3);
+//		a = count;
+//		if(count==1 && buff[0]!=0x55 )  //检查帧头
+//		{
+//			count = 0;
+//			return;
+//		}
+//		else if(count<=10)
+//		{
+//			checksum+=buff[count-1];  //header+acc+gyr
+//			if(count == 10)
+//			{
+//				checksum = !(checksum>>8|(checksum&0x00FF));
+//			}
+//		}
+//		else if(count>10)
+//		{
+//			count=0;
+
+////			if(checksum!=buff[10]) 
+////			{
+////				checksum = 0x55;
+////				return;
+////			}/* 校验错误 */
+//			checksum = 0x55;
+
+//			switch (buff[1])            //标签
+//			{
+//			case 0x51:  
+//				imu_raw_msg.accRaw[0]=Bytes2INT16Conv(&buff[2]);
+//				imu_raw_msg.accRaw[1]=Bytes2INT16Conv(&buff[4]);
+//				imu_raw_msg.accRaw[2]=Bytes2INT16Conv(&buff[6]);
+//				break;  /* 加速度 */
+//			case 0x52:  
+//				imu_raw_msg.gyrRaw[0]=Bytes2INT16Conv(&buff[2]);
+//				imu_raw_msg.gyrRaw[1]=Bytes2INT16Conv(&buff[4]);
+//				imu_raw_msg.gyrRaw[2]=Bytes2INT16Conv(&buff[6]);
+//				break;	/* 角速度 */
+//			case 0x53:  
+//				imu_raw_msg.eluRaw[0]=Bytes2INT16Conv(&buff[2]);
+//				imu_raw_msg.eluRaw[1]=Bytes2INT16Conv(&buff[4]);
+//				imu_raw_msg.eluRaw[2]=Bytes2INT16Conv(&buff[6]);
+//				break;	/* 角度 */	
+//			default:
+//				break;
+//			}  /* switch */
+//			
+//		}
+//	} 
 } 

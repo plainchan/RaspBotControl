@@ -3,7 +3,9 @@
 
 #include "stdint.h"
 
-#define imu_mag
+//#define imu_mag
+
+#define  G  9.780
 
 #define ANALOG_VOL    3.30         //模拟电压参考值
 #define COV_COUNT     5.0          //电压循环检测次数
@@ -20,6 +22,7 @@ typedef enum
 	BATTERY_LOW,
 	BATTERY_ALARM
 }Battery;
+
 
 /**
  * @brief params of robot 
@@ -49,6 +52,19 @@ typedef struct  Motor_Controlled_Params
     int16_t    CtrlPulseR;
 }Motor_msgs; 
 
+/**
+ * @brief 从IMU读取的原始数据
+ */
+typedef struct
+{
+	int16_t accRaw[3];
+	int16_t gyrRaw[3];
+#ifdef imu_mag
+	int16_t magRaw;
+#endif
+	int16_t eluRaw[3];
+}IMU_Raw_msg;
+
 typedef struct
 {
 	float P;
@@ -56,15 +72,11 @@ typedef struct
 	float D;
 }PID;
 
-typedef struct
-{
-	int16_t P;
-	int16_t I;
-	int16_t D;
-}IMU_Raw_msg;
-
-extern  Robot_msgs robot_msgs;
-extern  Motor_msgs motor_msgs;
+extern  Robot_msgs     robot_msgs;
+extern  Motor_msgs     motor_msgs;
+extern  IMU_Raw_msg    imu_raw_msg;
+extern  PID            pid;
+	
 
 void voltage_check(void);
 void oled_showContent(void);

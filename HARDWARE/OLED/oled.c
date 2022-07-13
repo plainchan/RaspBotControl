@@ -200,6 +200,7 @@ void oled_init(void)
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;//速度50MHz
  	GPIO_Init(GPIOA, &GPIO_InitStructure);	 
+	GPIO_ResetBits(GPIOA,GPIO_Pin_8);
  	GPIO_SetBits(GPIOA,GPIO_Pin_8);	
 	
 
@@ -207,6 +208,7 @@ void oled_init(void)
  	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;//速度50MHz
  	GPIO_Init(GPIOB, &GPIO_InitStructure);	 
+	GPIO_ResetBits(GPIOB,GPIO_Pin_15|GPIO_Pin_14|GPIO_Pin_13|GPIO_Pin_12);
  	GPIO_SetBits(GPIOB,GPIO_Pin_15|GPIO_Pin_14|GPIO_Pin_13|GPIO_Pin_12);	
 							  
  		  
@@ -314,21 +316,12 @@ void oled_print(unsigned char x,unsigned char y,u8 ch[])
 	}
 }
 
-<<<<<<< HEAD
 void oled_digit(u8 x,u8 y,long long num,u8 totalLen,u8 size)
 {
 	for(int i=0;i<totalLen;++i)
 		oled_char(x+i*size/2,y,' ',size,1);
 	unsigned long long integer = llabs(num);
 	unsigned long long base =1;
-=======
-void oled_digit(u8 x,u8 y,int num,u8 totalLen,u8 size)
-{
-	for(int i=0;i<totalLen;++i)
-		oled_char(x+i*size/2,y,' ',size,1);
-	u32 integer = abs(num);
-	u32 base=1;
->>>>>>> 248ba16e6f35584dac582c2177468445d51485ee
 	while(base <= integer/10)
 	{
 		base*=10;
