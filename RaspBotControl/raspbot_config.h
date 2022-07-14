@@ -15,15 +15,17 @@
 #define MOTOR_EN_R_PIN       GPIO_Pin_2       //B2
 
 
-
+//编码器参数
 #define reduction_Ratio                  30       // 电机减速比
 #define encoder_line                     13       // 编码器线数
 #define multiplier_factor                4        // A/B相倍频因子
 #define PPR                   (reduction_Ratio*encoder_line)
-
-#define wheelTrack               (float)0.203       //轮距
+//小车参数
+#define wheelTrack                     0.203f       //轮距
 #define wheelRadius                    0.0325       //轮胎半径
 
+//定时器间隔
+#define intervalTimer                   0.01f
 
 extern volatile char safe_mode;
 extern volatile char uart_lock;

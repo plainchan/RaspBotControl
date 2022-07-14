@@ -42,18 +42,16 @@ typedef struct  Robot_Sensor_Params
 }Robot_msgs; 
 
 /**
- * @brief params of Motor 
+ * @brief msgs of Motor  from computer or joystick
  */
 typedef struct  Motor_Controlled_Params
 {
-	float      velocity;    //
-	float      yaw;         //
-    int16_t    CtrlPulseL;
-    int16_t    CtrlPulseR;
+	float      velocity;        //
+	float      angular;         //
 }Motor_msgs; 
 
 /**
- * @brief 从IMU读取的原始数据
+ * @brief imu data from register
  */
 typedef struct
 {
@@ -67,9 +65,18 @@ typedef struct
 
 typedef struct
 {
-	float P;
-	float I;
-	float D;
+	float Kp;
+	float Ki;
+	float Kd;
+
+	float error[2];
+	float last_error[2];
+	float accumu_error[2];
+	
+	int16_t limMax;
+	int16_t limMin;
+
+	int16_t out_pwm[2];
 }PID;
 
 extern  Robot_msgs     robot_msgs;
