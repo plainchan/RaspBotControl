@@ -14,11 +14,25 @@
 #define MOTOR_EN_L_PIN       GPIO_Pin_4       //A4
 #define MOTOR_EN_R_PIN       GPIO_Pin_2       //B2
 
+
+
+#define reduction_Ratio                  30       // 电机减速比
+#define encoder_line                     13       // 编码器线数
+#define multiplier_factor                4        // A/B相倍频因子
+#define PPR                   (reduction_Ratio*encoder_line)
+
+#define wheelTrack               (float)0.203       //轮距
+#define wheelRadius                    0.0325       //轮胎半径
+
+
+extern volatile char safe_mode;
+extern volatile char uart_lock;
            
 
 void board_configInit(void);
 void motor_pwm(int16_t duty_L,int16_t duty_R);
 u16 getAnalogValue(void);
-int Read_Encoder(u8 TIMX);
+short Read_Encoder(u8 TIMX);
+void security_mode(void);
 
 #endif

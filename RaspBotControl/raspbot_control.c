@@ -12,6 +12,18 @@ Battery batteryState=BATTERY_FULL;
 /* time flag */
 u32 flag_500ms=0;
 
+void time_flag(void)
+{
+	//time flag
+	++flag_500ms;
+	if(flag_500ms>50)
+	{
+		STATE_LED=!STATE_LED;
+		flag_500ms=0;
+	}
+}
+
+
 void voltage_check(void)
 {
 	u32 value=0;
@@ -70,8 +82,34 @@ void oled_showContent(void)
  		oled_float(104,36,motor_msgs.velocity,1,2,12);
  		oled_float(104,52,motor_msgs.yaw,1,2,12);
  	}
+	
+	
+	//显示编码器速度
+	if(robot_msgs.l_encoder_pulse>=0.0) oled_char(0,36,'+',12,1); else oled_char(0,36,'-',12,1);
+ 	if(robot_msgs.r_encoder_pulse>=0.0) oled_char(0,52,'+',12,1); else oled_char(0,52,'-',12,1);
+	oled_digit(7,36,robot_msgs.l_encoder_pulse,4,12);
+	oled_digit(7,52,robot_msgs.r_encoder_pulse,4,12);
+	
 	oled_update();
 }
+
+
+
+void calculate_plus()
+{
+	
+}
+
+void speed_control()
+{
+	
+}
+
+
+
+
+
+
 
 /**
   * @brief  定时器1中断入口，10ms中断
@@ -83,13 +121,28 @@ void TIM1_UP_IRQHandler(void)
 	if(TIM_GetITStatus(TIM1,TIM_IT_Update)!=RESET)
 		TIM_ClearITPendingBit(TIM1,TIM_IT_Update);
 	
-	//time flag
-	++flag_500ms;
-	if(flag_500ms>50)
-	{
-		STATE_LED=!STATE_LED;
-		flag_500ms=0;
-	}
+	
+	//读取编码器
+	robot_msgs.l_encoder_pulse = Read_Encoder(2);
+	robot_msgs.r_encoder_pulse = -Read_Encoder(4);
+	
+	//发送 编码器
+#ifndef sendIMUByInterrupt
+	if(!uart_lock)
+		sendFrame_Encoder_dpkg(&robot_msgs);
+	else
+		uart_lock = 2;
+#else
+	sendFrame_Multi_dpkg();
+#endif
+	
+	//速度解算与PID控制
+	
+	
+	//时间标志
+	time_flag();
+	
+
 }
 
 

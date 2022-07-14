@@ -511,7 +511,7 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
  * @brief 串口读取IMU数据
  * 
  */
-short imu_ready_flag=0;
+short imu_ready_flag=0x000f;
 void USART2_IRQHandler(void)                	//串口1中断服务程序
 {
 	static uint8_t buff[11]={0};
