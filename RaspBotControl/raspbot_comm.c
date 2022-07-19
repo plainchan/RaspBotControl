@@ -94,7 +94,12 @@ int decode_frame(Stream_msgs *stream_msgs)
 		{
 		case speed_tag:
 			motor_msgs.velocity=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
-			motor_msgs.yaw=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
+			motor_msgs.angular=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
+			break;
+		case pid_tag:
+			pid.Kp=Bytes2INT16Conv(&buff[offset+1])/10.0;offset+=2;
+			pid.Ki=Bytes2INT16Conv(&buff[offset+1])/10.0;offset+=2;
+			pid.Kd=Bytes2INT16Conv(&buff[offset+1])/10.0;offset+=2;
 			break;
 		default:++offset;
 			break;

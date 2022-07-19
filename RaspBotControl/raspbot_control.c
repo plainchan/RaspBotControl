@@ -2,6 +2,7 @@
 #include "raspbot_config.h"
 #include "raspbot_comm.h"
 #include "math.h"
+#include "stdlib.h"
 
 /* global params */
 Robot_msgs robot_msgs;
@@ -90,29 +91,34 @@ void oled_showContent(void)
 			oled_char(98, 36, '+', 12, 1);
 		else
 			oled_char(98, 36, '-', 12, 1);
-		if (motor_msgs.yaw >= 0.0)
+		if (motor_msgs.angular >= 0.0)
 			oled_char(98, 52, '+', 12, 1);
 		else
 			oled_char(98, 52, '-', 12, 1);
 		oled_float(104, 36, motor_msgs.velocity, 1, 2, 12);
-		oled_float(104, 52, motor_msgs.yaw, 1, 2, 12);
+		oled_float(104, 52, motor_msgs.angular, 1, 2, 12);
 	}
 
 	//显示编码器速度
 	if (robot_msgs.l_encoder_pulse >= 0.0)
-		oled_char(0, 36, '+', 12, 1);
+		oled_char(0, 40, '+', 12, 1);
 	else
-		oled_char(0, 36, '-', 12, 1);
+		oled_char(0, 40, '-', 12, 1);
 	if (robot_msgs.r_encoder_pulse >= 0.0)
 		oled_char(0, 52, '+', 12, 1);
 	else
 		oled_char(0, 52, '-', 12, 1);
-	oled_digit(7, 36, robot_msgs.l_encoder_pulse, 4, 12);
+	oled_digit(7, 40, robot_msgs.l_encoder_pulse, 4, 12);
 	oled_digit(7, 52, robot_msgs.r_encoder_pulse, 4, 12);
+	
+	//PID
+	oled_char(0,0,'P',12,0);oled_float(8,0,pid.Kp, 1, 4,12);
+	oled_char(0,13,'I',12,0);oled_float(8,13, pid.Ki, 1, 2,12);
+	oled_char(0,26,'D',12,0);oled_float(8,26, pid.Kd, 1, 3,12);
+	
 
 	oled_update();
 }
-
 
 
 void speed_control()
@@ -130,7 +136,7 @@ void speed_control()
 	pid.accumu_error[1]+=pid.error[1];
 
 	pid.out_pwm[0] = pid.Kp*pid.error[0]+pid.Ki*pid.accumu_error[0]+pid.Kd*(pid.error[0]-pid.last_error[0]);
-	pid.out_pwm[1] = pid.Kp*pid.error[1]+pid.Ki*pid.accumu_error[0]+pid.Kd*(pid.error[1]-pid.last_error[1]);
+	pid.out_pwm[1] = pid.Kp*pid.error[1]+pid.Ki*pid.accumu_error[1]+pid.Kd*(pid.error[1]-pid.last_error[1]);
 
 
 
@@ -161,31 +167,35 @@ void TIM1_UP_IRQHandler(void)
 	//清除标志位
 	if (TIM_GetITStatus(TIM1, TIM_IT_Update) != RESET)
 		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
+	
+	//时间标志
+	time_flag();
 
 	//读取编码器
 	robot_msgs.l_encoder_pulse = -Read_Encoder(2);
 	robot_msgs.r_encoder_pulse = +Read_Encoder(4);
 
-	//串口发送数据
+
+	//速度解算与PID控制
+	speed_control();
+
+	//串口发送数据4
 #ifndef sendIMUByInterrupt
 	if (!uart_lock)
 		sendFrame_Encoder_dpkg(&robot_msgs);
 	else
 		uart_lock = 2;
+	
+		sendFrame_Encoder_dpkg(&robot_msgs);
 #else
 	sendFrame_Multi_dpkg();
 #endif
 
-	//速度解算与PID控制
-	speed_control();
-
-	//时间标志
-	time_flag();
 }
 
 
 
-void param_init()
+void param_init(void)
 {
 	robot_msgs.voltage = 11.1;
 	robot_msgs.l_encoder_pulse = 0;
@@ -209,9 +219,12 @@ void param_init()
 	robot_msgs.elu[2]=0;
 
 
-	pid.Kp = 0.0;
-	pid.Ki = 0.0;
-	pid.Kd = 0.0;
+	pid.Kp = 26.0;
+	pid.Ki = 2.5;
+	pid.Kd = 5.0;
+	
+	pid.limMin = 80;
+	pid.limMax = 999;
 
 	pid.error[0] = 0.0;
 	pid.error[1] = 0.0;

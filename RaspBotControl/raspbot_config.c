@@ -64,14 +64,14 @@ void TIM2_Encoder_Init(void)
 	TIM_ICInit(TIM2, &TIM_ICInitStructure);
 
 	TIM_ClearFlag(TIM2, TIM_FLAG_Update); //清除TIM的更新标志位
-	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
+//	TIM_ITConfig(TIM2, TIM_IT_Update, ENABLE);
 
 
-	NVIC_InitTypeStruct.NVIC_IRQChannel = TIM2_IRQn;
-	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 3;
-	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority = 0;
-	NVIC_InitTypeStruct.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitTypeStruct);
+//	NVIC_InitTypeStruct.NVIC_IRQChannel = TIM2_IRQn;
+//	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 3;
+//	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority = 0;
+//	NVIC_InitTypeStruct.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_InitTypeStruct);
 
 	// Reset counter
 	TIM_SetCounter(TIM2, 0);
@@ -112,13 +112,13 @@ void TIM4_Encoder_Init(void)
 	TIM_ICInit(TIM4, &TIM_ICInitStructure);
 
 	TIM_ClearFlag(TIM4, TIM_FLAG_Update); //清除TIM的更新标志位
-	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
+//	TIM_ITConfig(TIM4, TIM_IT_Update, ENABLE);
 
-	NVIC_InitTypeStruct.NVIC_IRQChannel = TIM4_IRQn;
-	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 3;
-	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority = 1;
-	NVIC_InitTypeStruct.NVIC_IRQChannelCmd = ENABLE;
-	NVIC_Init(&NVIC_InitTypeStruct);
+//	NVIC_InitTypeStruct.NVIC_IRQChannel = TIM4_IRQn;
+//	NVIC_InitTypeStruct.NVIC_IRQChannelPreemptionPriority = 3;
+//	NVIC_InitTypeStruct.NVIC_IRQChannelSubPriority = 1;
+//	NVIC_InitTypeStruct.NVIC_IRQChannelCmd = ENABLE;
+//	NVIC_Init(&NVIC_InitTypeStruct);
 
 	// Reset counter
 	TIM_SetCounter(TIM4, 0);
@@ -290,6 +290,7 @@ void motor_pwm(int16_t duty_L, int16_t duty_R)
  */
 void TIM2_IRQHandler(void)
 {
+
 	if (TIM2->SR & 0X0001) //溢出中断
 	{
 	}
@@ -469,7 +470,7 @@ void UART3_Init(u32 baud)
 	// Usart1 NVIC 配置
 	NVIC_InitStructure.NVIC_IRQChannel = USART3_IRQn;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 3; //抢占优先级3
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 2;		  //子优先级3
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 3;		  //子优先级3
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			  // IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);							  //根据指定的参数初始化VIC寄存器
 
@@ -509,11 +510,12 @@ void security_mode(void)
 {
 	while(safe_mode)
 	{
-		
 	}
 }
 
+
 volatile char uart_lock = 0;
+
 /**
  * @brief  board IO initial
  */
@@ -535,10 +537,10 @@ void board_configInit(void)
 
 	motor_init();
 	UART1_Init(115200);    // 通信串口
-	UART2_Init(115200);    // IMU串口
-	UART3_Init(115200);    // 串口3引出端口
+//	UART2_Init(115200);    // IMU串口
+//	UART3_Init(115200);    // 串口3引出端口
 	TIM1_IT_Init(10); /* must initialize after usart,because send data in interrupts */
-	TIM3_PWM_Init();
+	motor_init();
 	adc_init();
 	encoder_init();
 

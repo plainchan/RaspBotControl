@@ -89,5 +89,5 @@ void voltage_check(void);
 void oled_showContent(void);
 void lowVoltageAlarm(void);
 
-
+void param_init(void);
 #endif

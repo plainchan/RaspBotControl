@@ -91,6 +91,7 @@
 
 #define voltage_dpkg_len    (uint8_t)0x02
 
+
 #define robot_tag                0xA0
 #define speed_tag                0xB0
 #define encoder_tag              0xC0
@@ -98,6 +99,7 @@
 #define imu_sensor_tag           0xD1
 #define imu_raw_tag              0xD2
 #define voltage_tag              0xE0
+#define pid_tag                  0x70
 
 extern volatile int  receiveFlag;
 
