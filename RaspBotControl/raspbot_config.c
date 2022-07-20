@@ -1,5 +1,5 @@
 #include "raspbot_config.h"
-
+#include "ps2lib.h"
 /**
  * @brief  定时器1(高级定时器)中断,设置10ms中断，作为程序的控制时间逻辑
  * @param
@@ -522,19 +522,28 @@ volatile char uart_lock = 0;
 void board_configInit(void)
 {
 	//使能GPIO时钟
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC|RCC_APB2Periph_AFIO,ENABLE);
+	/* Disable JLink, enable SW */
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 	//中断分组
 	NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
 
 	//	SystemInit();
+		
+	/* ps2 port use JTAG */
+	
+	
 	delay_init();
+	
 	stateLED_init();
 	oled_init();
 	oled_picture(0, 0, 128, 64, start_bmp);
 	oled_update();
+	
 	delay_ms(1000);
 	OLED_Clear();
-
+	
+	ps2_init();
 	motor_init();
 	UART1_Init(115200);    // 通信串口
 //	UART2_Init(115200);    // IMU串口

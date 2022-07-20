@@ -5,16 +5,27 @@
 
 
 
-#define DI   PBin(12)           //PB12  ����
+// #define DI   PBin(12)           //PB12  ����
 
-#define DO_H PBout(13)=1        //����λ��
-#define DO_L PBout(13)=0        //����λ��
+// #define DO_H PBout(13)=1        //����λ��
+// #define DO_L PBout(13)=0        //����λ��
 
-#define CS_H PBout(14)=1       //CS����
-#define CS_L PBout(14)=0       //CS����
+// #define CS_H PBout(14)=1       //CS����
+// #define CS_L PBout(14)=0       //CS����
 
-#define CLK_H PBout(15)=1      //ʱ������
-#define CLK_L PBout(15)=0      //ʱ������
+// #define CLK_H PBout(15)=1      //ʱ������
+// #define CLK_L PBout(15)=0      //ʱ������
+
+#define DI   PAin(15)           //PB12  ����
+
+#define DO_H PBout(3)=1        //����λ��
+#define DO_L PBout(3)=0        //����λ��
+
+#define CS_H PBout(4)=1       //CS����
+#define CS_L PBout(4)=0       //CS����
+
+#define CLK_H PBout(5)=1      //ʱ������
+#define CLK_L PBout(5)=0      //ʱ������
 
 
 //These are our button constants
@@ -56,7 +67,7 @@ extern u16 Handkey;
 void PS2_Init(void);
 u8 PS2_RedLight(void);//�ж��Ƿ�Ϊ���ģ�?
 void PS2_ReadData(void);
-void PS2_Cmd(u8 CMD);		  //
+void PS2_Cmd(u8 cmd);		  //
 u8 PS2_DataKey(void);		  //��ֵ��ȡ
 u8 PS2_AnologData(u8 button); //�õ�һ��ҡ�˵�ģ����
 void PS2_ClearData(void);	  //������ݻ�����?

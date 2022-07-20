@@ -3,7 +3,7 @@
 #include "raspbot_comm.h"
 #include "math.h"
 #include "stdlib.h"
-
+#include "ps2lib.h"
 /* global params */
 Robot_msgs robot_msgs;
 Motor_msgs motor_msgs;
@@ -22,6 +22,7 @@ void time_flag(void)
 	if (flag_500ms > 50)
 	{
 		STATE_LED = !STATE_LED;
+		CS = !CS;
 		flag_500ms = 0;
 	}
 }
@@ -190,6 +191,8 @@ void TIM1_UP_IRQHandler(void)
 #else
 	sendFrame_Multi_dpkg();
 #endif
+	
+	
 
 }
 

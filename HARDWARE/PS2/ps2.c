@@ -33,37 +33,60 @@ u16 MASK[]={
 //                  输出  DO->PB13    CS->PB14  CLK->PB15
 void PS2_Init(void)
 {
-    //输入  DI->PB12
-	RCC->APB2ENR|=1<<3;     //使能PORTB时钟
-	GPIOB->CRH&=0XFFF0FFFF;//PB12设置成输入	默认下拉  
-	GPIOB->CRH|=0X00080000;   
+    // //输入  DI->PB12
+	// RCC->APB2ENR|=1<<3;     //使能PORTB时钟
+	// GPIOB->CRH&=0XFFF0FFFF;//PB12设置成输入	默认下拉  
+	// GPIOB->CRH|=0X00080000;   
 
-    //  DO->PB13    CS->PB14  CLK->PB15
-	RCC->APB2ENR|=1<<3;    //使能PORTB时钟  	   	  	 
-	GPIOB->CRH&=0X000FFFFF; 
-	GPIOB->CRH|=0X33300000;//PB13、PB14、PB15 推挽输出   	 											  
+    // //  DO->PB13    CS->PB14  CLK->PB15
+	// RCC->APB2ENR|=1<<3;    //使能PORTB时钟  	   	  	 
+	// GPIOB->CRH&=0X000FFFFF; 
+	// GPIOB->CRH|=0X33300000;//PB13、PB14、PB15 推挽输出  
+
+		GPIO_InitTypeDef GPIO_InitStructure;
+
+  //DAT
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+
+  //CLK
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+  //CS
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
+
+    //CMD
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);	 											  
 }
 
 //向手柄发送命令
-void PS2_Cmd(u8 CMD)
+void PS2_Cmd(u8 cmd)
 {
 	volatile u16 ref=0x01;
 	Data[1] = 0;
 	for(ref=0x01;ref<0x0100;ref<<=1)
 	{
-		if(ref&CMD)
+		if(ref&cmd)
 		{
 			DO_H;                   //输出以为控制位
 		}
 		else DO_L;
 
 		CLK_H;                        //时钟拉高
-		delay_us(50);
+		delay_us(5);
 		CLK_L;
-		delay_us(50);
+		delay_us(5);
 		CLK_H;
 		if(DI)
 			Data[1] = ref|Data[1];
+		delay_us(50);
 	}
 }
 //判断是否为红灯模式
