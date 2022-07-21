@@ -2,24 +2,26 @@
 #include "ps2lib.h"
 #include "stdint.h"
 #include "delay.h"
+#include "oled.h"
 
 static const uint8_t enter_config[] = {0x01, 0x43, 0x00, 0x01, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A};
 static const uint8_t exit_config[] = {0x01, 0x43, 0x00, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A};
-static const uint8_t type_read[] = {0x01, 0x45, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A};
-static const uint8_t set_mode[] = {0x01, 0x44, 0x00, /* enabled */ 0x01, /* locked */ 0x03, 0x00, 0x00, 0x00, 0x00};
+//static const uint8_t type_read[] = {0x01, 0x45, 0x00, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A};
+//static const uint8_t set_mode[] = {0x01, 0x44, 0x00, /* enabled */ 0x01, /* locked */ 0x03, 0x00, 0x00, 0x00, 0x00};
 static const uint8_t enable_rumble[] = {0x01, 0x4D, 0x00, /* motor 1 on */ 0x00, /* motor 2 on*/ 0x01, 0xff, 0xff, 0xff, 0xff};
 static const uint8_t set_pressures[] = {0x01, 0x4F, 0x00, 0xFF, 0xFF, 0x03, 0x00, 0x00, 0x00};
 
 static const uint8_t query_command[21]={0x01,0x42,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
-PS2_MODE ps_mode;
+
 static uint8_t ps2_resp_data[21];
 static uint16_t buttons_status = 0xFF,last_buttons_status = 0xFF;   //
 static uint8_t en_Rumble = 0;
 static uint8_t en_Pressures = 0;
 static uint8_t resp_len = 21;
 
-
+PS2_MODE ps2_mode;
+	
 uint8_t sendCommmandAndGetResp(const uint8_t byte)
 {
 	uint8_t res = 0;
@@ -47,6 +49,12 @@ uint8_t sendCommmandAndGetResp(const uint8_t byte)
 	return res;
 }
 
+void reset_resp_data(void)
+{
+	for(int i=0;i<21;++i)
+		ps2_resp_data[i]=0;
+}
+
 uint8_t  sendCommandLists(const uint8_t *byte,uint8_t len)
 {
 	reset_resp_data();
@@ -66,6 +74,9 @@ void read_gamepad(void)
 {
     
     reset_resp_data();
+	
+		CS = 0;
+		delay_us(CLK_DELAY);
     for(int i=0;i<21;++i)
     {
         if(i>resp_len) break;
@@ -85,7 +96,18 @@ void read_gamepad(void)
             }
         }
     }
-
+		CS = 1;
+		
+//		oled_digit(35,12,ps2_resp_data[0],3,12);
+//		oled_digit(35,24,ps2_resp_data[1],3,12);
+//		oled_digit(35,36,ps2_resp_data[2],3,12);
+//		oled_digit(35,48,ps2_resp_data[3],3,12);
+//		oled_digit(59,12,ps2_resp_data[4],3,12);
+//		oled_digit(59,24,ps2_resp_data[5],3,12);
+//		oled_digit(59,36,ps2_resp_data[6],3,12);
+//		oled_digit(59,48,ps2_resp_data[7],3,12);
+//		oled_digit(83,12,ps2_resp_data[8],3,12);
+//		oled_digit(83,24,resp_len,2,12);
     last_buttons_status = buttons_status;
     buttons_status = (uint16_t)ps2_resp_data[4]<<8 | ps2_resp_data[3];
     
@@ -108,7 +130,7 @@ uint8_t getButtonStatus(const uint16_t button)
  */
 uint8_t isButtonStatusChanged(const uint16_t button)
 {
-    return ((buttons_status^last_buttons_status)&button)>0
+    return ((buttons_status^last_buttons_status)&button)>0;
 }
 /**
  * @brief Get the Button Status comparing with the last time ,trigger once while pressed
@@ -132,7 +154,7 @@ uint8_t buttonReleased(const uint16_t button)
     //        button change             &&        at last time the  button is pressed
 }
 
-uint8_t getAnalogValue(const uint8_t button)
+uint8_t getJoyAnalogValue(const uint8_t button)
 {
     if(ps2_mode == ANALOG_MODE && button <21)
         return ps2_resp_data[button];
@@ -155,11 +177,7 @@ void config_gamepad(void)
 
 }
 
-void reset_resp_data(void)
-{
-	for(int i=0;i<21;++i)
-		ps2_resp_data[i]=0;
-}
+
 
 void ps2_init(void)
 {

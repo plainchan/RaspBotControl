@@ -2,7 +2,7 @@
 #include "raspbot_control.h"
 #include "raspbot_comm.h"
 #include "ps2lib.h"
-#include "ps2.h"
+
 //#define sendIMUByInterrupt	
 
 int main(void)
@@ -29,7 +29,8 @@ int main(void)
 #endif
 
 		voltage_check();
-        read_gamepad();
+    read_gamepad();
+		ps2_control();
 		oled_showContent();
 	}
 }

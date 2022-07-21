@@ -65,8 +65,8 @@ void lowVoltageAlarm(void)
 void oled_showContent(void)
 {
 	//显示电压
-	oled_float(74, 0, robot_msgs.voltage, 1, 3, 12);
-	oled_char(98, 0, 'V', 12, 1);
+//	oled_float(74, 0, robot_msgs.voltage, 1, 3, 12);
+//	oled_char(98, 0, 'V', 12, 1);
 	switch (batteryState)
 	{
 	case BATTERY_FULL:
@@ -86,19 +86,18 @@ void oled_showContent(void)
 	}
 
 	//显示受控速度
-	if (receiveFlag == 1)
-	{
-		if (motor_msgs.velocity >= 0.0)
-			oled_char(98, 36, '+', 12, 1);
-		else
-			oled_char(98, 36, '-', 12, 1);
-		if (motor_msgs.angular >= 0.0)
-			oled_char(98, 52, '+', 12, 1);
-		else
-			oled_char(98, 52, '-', 12, 1);
-		oled_float(104, 36, motor_msgs.velocity, 1, 2, 12);
-		oled_float(104, 52, motor_msgs.angular, 1, 2, 12);
-	}
+
+	if (motor_msgs.velocity >= 0.0)
+		oled_char(98, 36, '+', 12, 1);
+	else
+		oled_char(98, 36, '-', 12, 1);
+	if (motor_msgs.angular >= 0.0)
+		oled_char(98, 52, '+', 12, 1);
+	else
+		oled_char(98, 52, '-', 12, 1);
+	oled_float(104, 36, motor_msgs.velocity, 1, 2, 12);
+	oled_float(104, 52, motor_msgs.angular, 1, 2, 12);
+
 
 	//显示编码器速度
 	if (robot_msgs.l_encoder_pulse >= 0.0)
@@ -113,37 +112,73 @@ void oled_showContent(void)
 	oled_digit(7, 52, robot_msgs.r_encoder_pulse, 4, 12);
 	
 	//PID
-	oled_char(0,0,'P',12,0);oled_float(8,0,pid.Kp, 1, 4,12);
-	oled_char(0,13,'I',12,0);oled_float(8,13, pid.Ki, 1, 2,12);
-	oled_char(0,26,'D',12,0);oled_float(8,26, pid.Kd, 1, 3,12);
+//	oled_char(0,0,'P',12,0);oled_float(8,0,pid.Kp, 1, 4,12);
+//	oled_char(0,13,'I',12,0);oled_float(8,13, pid.Ki, 1, 2,12);
+//	oled_char(0,26,'D',12,0);oled_float(8,26, pid.Kd, 1, 3,12);
 	
 
 	oled_update();
 }
 
+/**
+	* @brief
+	* @attention Can't put in interrupt,because may be reading gamepad status while IT triggering
+	*/
+void ps2_control(void)
+{
+	 //speed controled by gamepad
+  //the speed cmd from computer will be covered
+	if(IS_JOYSTICK_MODE(ps2_mode))
+	{
+		int speed_analog_value  = JOYSTICK_INIT_VALUE - getJoyAnalogValue(PSS_LY);
+		speed_analog_value =abs(speed_analog_value)<2?0:speed_analog_value;
+		motor_msgs.velocity = speed_analog_value>=0?speed_analog_value*joy_forward_scale:speed_analog_value*joy_backward_scale;
+		//nonlinearity
+		if(abs(speed_analog_value)<50)
+			motor_msgs.velocity*=1.2;
+		
+		int angular_analog_value = JOYSTICK_INIT_VALUE - getJoyAnalogValue(PSS_RX);
+		angular_analog_value =abs(angular_analog_value)<2?0:angular_analog_value;
+		motor_msgs.angular = angular_analog_value*joy_steering_scale;
+//		//nonlinearity
+//		if(abs(angular_analog_value)<50)
+//			motor_msgs.angular*=1.2;
+//		
+		// accelerate
+		if(getButtonStatus(PSB_R1))
+		{
+			motor_msgs.velocity *=2.0;
+			motor_msgs.angular*=2.5;
+		}
+		//Braking
+		if(getButtonStatus(PSB_L1))
+		{
+			motor_msgs.velocity = 0.0;
+			motor_msgs.angular = 0.0;
+		}
+	}
+	else if(IS_DISCONNECTED(ps2_mode))
+	{
+		motor_msgs.velocity=0.0;
+		motor_msgs.angular = 0.0;
+	}
+	else
+	{
+		//ps2 digital mode is used to  interaction  with mcu as keyboard
 
+		
+		
+	}
+}
 void speed_control()
 {
-    //speed controled by gamepad
-    //the speed cmd from computer will be covered
-    if(IS_JOYSTICK_MODE(ps2_mode))
-    {
-        int8_t analog_value  = 127 - getAnalogValue(PSS_LX);
-        if(analog_value>=0)
-            motor_msgs.velocity = analog_value*joy_forward_scale;
-        else
-            motor_msgs.velocity = analog_value*joy_backward_scale;
 
-        motor_msgs.angular = (127 - getAnalogValue(PSS_LX))*joy_steering_scale;
-    }
+   //limit speed
+  if(motor_msgs.velocity > MAX_SPEED) motor_msgs.velocity=MAX_SPEED;
+  else if(motor_msgs.velocity < -MAX_SPEED*0.6) motor_msgs.velocity=-MAX_SPEED*0.6;
 
-
-    //limit speed
-    if(motor_msgs.velocity > MAX_SPEED) motor_msgs.velocity=MAX_SPEED;
-    else if(motor_msgs.velocity < -MAX_SPEED*0.6) motor_msgs.velocity=-MAX_SPEED*0.6;
-
-    if(motor_msgs.angular > MAX_STEERING) motor_msgs.angular=MAX_STEERING;
-    else if(motor_msgs.angular < -MAX_STEERING) motor_msgs.angular=-MAX_STEERING;
+  if(motor_msgs.angular > MAX_STEERING) motor_msgs.angular=MAX_STEERING;
+  else if(motor_msgs.angular < -MAX_STEERING) motor_msgs.angular=-MAX_STEERING;
 
 	// speed resolution
 	float L_velocity = motor_msgs.velocity - motor_msgs.angular * wheelTrack / 2;
@@ -152,13 +187,14 @@ void speed_control()
 	int16_t R_encoderSet = R_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
 
 
+
     //PID control
 	pid.error[0] = L_encoderSet - robot_msgs.l_encoder_pulse;
 	pid.error[1] = R_encoderSet - robot_msgs.r_encoder_pulse;
-
+	
 	pid.accumu_error[0]+=pid.error[0];
 	pid.accumu_error[1]+=pid.error[1];
-
+	
 	pid.out_pwm[0] = pid.Kp*pid.error[0]+pid.Ki*pid.accumu_error[0]+pid.Kd*(pid.error[0]-pid.last_error[0]);
 	pid.out_pwm[1] = pid.Kp*pid.error[1]+pid.Ki*pid.accumu_error[1]+pid.Kd*(pid.error[1]-pid.last_error[1]);
 
@@ -166,19 +202,22 @@ void speed_control()
 
 	pid.last_error[0]=pid.error[0];
 	pid.last_error[1]=pid.error[1];
-
+ 
 	//OUT limit
 	if(pid.out_pwm[0]>pid.limMax) pid.out_pwm[0]=pid.limMax;
-	if(pid.out_pwm[0]<pid.limMin && pid.out_pwm[0]>0) pid.out_pwm[0]=pid.limMin;
+	else if(pid.out_pwm[0]<pid.limMin && pid.out_pwm[0]>0) pid.out_pwm[0]=pid.limMin;
 	if(pid.out_pwm[1]>pid.limMax) pid.out_pwm[1]=pid.limMax;
-	if(pid.out_pwm[1]<pid.limMin && pid.out_pwm[1]>0) pid.out_pwm[1]=pid.limMin;
+	else if(pid.out_pwm[1]<pid.limMin && pid.out_pwm[1]>0) pid.out_pwm[1]=pid.limMin;
 
 	if(pid.out_pwm[0]<-pid.limMax) pid.out_pwm[0]=-pid.limMax;
-	if(pid.out_pwm[0]>-pid.limMin && pid.out_pwm[0]<0) pid.out_pwm[0]=-pid.limMin;
+	else if(pid.out_pwm[0]>-pid.limMin && pid.out_pwm[0]<0) pid.out_pwm[0]=-pid.limMin;
 	if(pid.out_pwm[1]<-pid.limMax) pid.out_pwm[1]=-pid.limMax;
-	if(pid.out_pwm[1]>-pid.limMin && pid.out_pwm[1]<0) pid.out_pwm[1]=-pid.limMin;
+	else if(pid.out_pwm[1]>-pid.limMin && pid.out_pwm[1]<0) pid.out_pwm[1]=-pid.limMin;
+	
+
 
 	motor_pwm(pid.out_pwm[0],pid.out_pwm[1]);
+	
 
 }
 

@@ -3,7 +3,7 @@
 #include "stm32f10x.h"
 #include "crc8.h"
 #include "crc16.h"
-
+#include "ps2lib.h"
 
 
 /***** 数据解包结构体  *****/
@@ -95,8 +95,12 @@ int decode_frame(Stream_msgs *stream_msgs)
 		switch (buff[offset])
 		{
 		case speed_tag:
-			motor_msgs.velocity=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
-			motor_msgs.angular=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
+			//JOYSTICK_MODE diable speed controlled by computer
+			if(IS_JOYSTICK_MODE(ps2_mode))
+				offset+=4;
+			else
+				motor_msgs.velocity=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
+				motor_msgs.angular=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
 			break;
 		case pid_tag:
 			pid.Kp=Bytes2INT16Conv(&buff[offset+1])/10.0;offset+=2;

@@ -50,6 +50,10 @@
 #define PSAB_CROSS       15
 #define PSAB_SQUARE      16
 
+#define JOYSTICK_INIT_VALUE 128
+
+
+
 #define BIT_SET(byte,x) (byte|=(1<<x))
 #define IS_BIT_SET(byte,x) (byte & (1<<x))
 
@@ -72,6 +76,8 @@ typedef enum
     DISCONNECTED = 0xff
 }PS2_MODE;
 
+#define IS_JOYSTICK_MODE(mode)    (mode  == ANALOG_MODE)
+#define IS_DISCONNECTED(mode)    (mode  == DISCONNECTED)
 
 
 extern PS2_MODE ps2_mode;
@@ -83,7 +89,7 @@ uint8_t getButtonStatus(const uint16_t button);
 uint8_t isButtonStatusChanged(const uint16_t button);
 uint8_t buttonPressed(const uint16_t button);
 uint8_t buttonReleased(const uint16_t button);
-uint8_t getAnalogValue(const uint8_t button);
+uint8_t getJoyAnalogValue(const uint8_t button);
 
 
 

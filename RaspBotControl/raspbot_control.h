@@ -16,11 +16,11 @@
 #define MAX_SPEED      1.2
 #define MAX_STEERING   2
 
-#define IS_JOYSTICK_MODE(mode)    (mode  == ANALOG_MODE)
 
-#define joy_forward_scale    0.787401575f
-#define joy_backward_scale   0.5f
-#define joy_steering_scale   0.015748031f
+
+#define joy_forward_scale    0.003f
+#define joy_backward_scale   0.0015f
+#define joy_steering_scale   0.005f
 
 typedef enum
 {
@@ -96,6 +96,6 @@ extern  PID            pid;
 void voltage_check(void);
 void oled_showContent(void);
 void lowVoltageAlarm(void);
-
+void ps2_control(void);
 void param_init(void);
 #endif
