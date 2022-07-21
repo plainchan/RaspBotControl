@@ -241,17 +241,16 @@ void TIM1_UP_IRQHandler(void)
 
 	//速度解算与PID控制
 	speed_control();
-
-	//串口发送数据4
+	
+	
+	//发送数据
 #ifndef sendIMUByInterrupt
 	if (!uart_lock)
 		sendFrame_Encoder_dpkg(&robot_msgs);
 	else
 		uart_lock = 2;
-	
-		sendFrame_Encoder_dpkg(&robot_msgs);
 #else
-	sendFrame_Multi_dpkg();
+//	sendFrame_Multi_dpkg();
 #endif
 	
 	
