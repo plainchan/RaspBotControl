@@ -2,7 +2,7 @@
 #include "ps2lib.h"
 #include "stdint.h"
 #include "delay.h"
-#include "oled.h"
+
 
 //static uint8_t enter_config[]={0x01,0x43,0x00,0x01,0x00};
 //static uint8_t set_mode[]={0x01,0x44,0x00,0x01,0x03,0x00,0x00,0x00,0x00};
@@ -13,46 +13,38 @@
 
 uint8_t ps2_resp_data[21];
 
-int a =0;
-uint8_t sendCommmandAndGetResp(uint8_t byte)
+uint8_t sendCommmandAndGetResp(const uint8_t byte)
 {
 	uint8_t res = 0;
 
 	for(int i=0;i<8;++i)
 	{
 		//单片机向手柄发送命令
-		if(byte&(1<<i) )CMD=1;
+		if(IS_BIT_SET(byte,i))CMD=1;
 		else CMD = 0;             
 
-		// 在时钟下降沿时，完成数据（1bit））的发送与接收
-
-
+		// 在时钟下降沿时，完成数据（1bit）的发送与接收
 		CLK = 0;
 
-		delay_us(5);
+		delay_us(CLK_DELAY);
 
-		if(DAT) res|=(1<<i);
-		else	a++;
-		oled_digit(60,0,a,3,12);
-		
-			
+		if(DAT) BIT_SET(res,i);
 		
 		CLK = 1;
-		delay_us(5);
+		delay_us(CLK_DELAY);
 	}
 	CMD = 1;
-	delay_us(5);
-
+#ifdef SEND_BYTE_DELAY
+	delay_us(SEND_BYTE_DELAY);
+#endif
 	return res;
 }
 
-uint8_t  sendCommandLists(uint8_t *byte,uint8_t len)
+uint8_t  sendCommandLists(const uint8_t *byte,uint8_t len)
 {
 	reset_resp_data();
-
-	
 	CS = 0;
-	delay_us(5);
+	delay_us(CLK_DELAY);
 	for(int i=0;i<len;++i)
 	{
 		ps2_resp_data[i]=sendCommmandAndGetResp(byte[i]);
@@ -73,7 +65,7 @@ void ps2_init(void)
 	GPIO_InitTypeDef GPIO_InitStructure;
   //DAT
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPD;//GPIO_Mode_IN_FLOATING;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
 //	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
@@ -86,7 +78,7 @@ void ps2_init(void)
   CMD = 1;
   CLK = 1;
 	CS =1;
-
+	delay_us(CLK_DELAY);
 }
 
 

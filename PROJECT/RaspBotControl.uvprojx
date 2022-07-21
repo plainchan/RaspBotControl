@@ -439,11 +439,6 @@
               <FileType>1</FileType>
               <FilePath>..\HARDWARE\PS2\ps2lib.c</FilePath>
             </File>
-            <File>
-              <FileName>ps2.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\HARDWARE\PS2\ps2.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

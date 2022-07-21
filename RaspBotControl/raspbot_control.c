@@ -22,7 +22,6 @@ void time_flag(void)
 	if (flag_500ms > 50)
 	{
 		STATE_LED = !STATE_LED;
-		CS = !CS;
 		flag_500ms = 0;
 	}
 }

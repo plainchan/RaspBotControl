@@ -26,7 +26,7 @@
 #define wheelRadius                    0.0325       //ÂÖÌ¥°ë¾¶
 
 //¶¨Ê±Æ÷¼ä¸ô
-#define intervalTimer                   0.01f
+#define intervalTimer                  0.01f
 
 extern volatile char safe_mode;
 extern volatile char uart_lock;
