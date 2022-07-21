@@ -13,6 +13,14 @@
 #define LOW_VOLTAGE   9.6          //×îµÍµçÑ¹
 #define BAT_RESOLUTION 0.05
 
+#define MAX_SPEED      1.2
+#define MAX_STEERING   2
+
+#define IS_JOYSTICK_MODE(mode)    (mode  == ANALOG_MODE)
+
+#define joy_forward_scale    0.787401575f
+#define joy_backward_scale   0.5f
+#define joy_steering_scale   0.015748031f
 
 typedef enum
 {

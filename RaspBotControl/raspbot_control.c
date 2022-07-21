@@ -4,6 +4,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "ps2lib.h"
+
 /* global params */
 Robot_msgs robot_msgs;
 Motor_msgs motor_msgs;
@@ -123,12 +124,35 @@ void oled_showContent(void)
 
 void speed_control()
 {
+    //speed controled by gamepad
+    //the speed cmd from computer will be covered
+    if(IS_JOYSTICK_MODE(ps2_mode))
+    {
+        int8_t analog_value  = 127 - getAnalogValue(PSS_LX);
+        if(analog_value>=0)
+            motor_msgs.velocity = analog_value*joy_forward_scale;
+        else
+            motor_msgs.velocity = analog_value*joy_backward_scale;
+
+        motor_msgs.angular = (127 - getAnalogValue(PSS_LX))*joy_steering_scale;
+    }
+
+
+    //limit speed
+    if(motor_msgs.velocity > MAX_SPEED) motor_msgs.velocity=MAX_SPEED;
+    else if(motor_msgs.velocity < -MAX_SPEED*0.6) motor_msgs.velocity=-MAX_SPEED*0.6;
+
+    if(motor_msgs.angular > MAX_STEERING) motor_msgs.angular=MAX_STEERING;
+    else if(motor_msgs.angular < -MAX_STEERING) motor_msgs.angular=-MAX_STEERING;
+
 	// speed resolution
 	float L_velocity = motor_msgs.velocity - motor_msgs.angular * wheelTrack / 2;
 	float R_velocity = motor_msgs.velocity + motor_msgs.angular * wheelTrack / 2;
 	int16_t L_encoderSet = L_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
 	int16_t R_encoderSet = R_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
 
+
+    //PID control
 	pid.error[0] = L_encoderSet - robot_msgs.l_encoder_pulse;
 	pid.error[1] = R_encoderSet - robot_msgs.r_encoder_pulse;
 
@@ -143,12 +167,12 @@ void speed_control()
 	pid.last_error[0]=pid.error[0];
 	pid.last_error[1]=pid.error[1];
 
-	//正转限制
+	//OUT limit
 	if(pid.out_pwm[0]>pid.limMax) pid.out_pwm[0]=pid.limMax;
 	if(pid.out_pwm[0]<pid.limMin && pid.out_pwm[0]>0) pid.out_pwm[0]=pid.limMin;
 	if(pid.out_pwm[1]>pid.limMax) pid.out_pwm[1]=pid.limMax;
 	if(pid.out_pwm[1]<pid.limMin && pid.out_pwm[1]>0) pid.out_pwm[1]=pid.limMin;
-	//反转限制
+
 	if(pid.out_pwm[0]<-pid.limMax) pid.out_pwm[0]=-pid.limMax;
 	if(pid.out_pwm[0]>-pid.limMin && pid.out_pwm[0]<0) pid.out_pwm[0]=-pid.limMin;
 	if(pid.out_pwm[1]<-pid.limMax) pid.out_pwm[1]=-pid.limMax;

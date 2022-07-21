@@ -26,19 +26,6 @@
 #define PSB_CROSS       0x4000
 #define PSB_SQUARE      0x8000
 
-////Guitar  button constants
-//#define UP_STRUM		0x0010
-//#define DOWN_STRUM		0x0040
-//#define LEFT_STRUM		0x0080
-//#define RIGHT_STRUM		0x0020
-//#define STAR_POWER		0x0100
-//#define GREEN_FRET		0x0200
-//#define YELLOW_FRET		0x1000
-//#define RED_FRET		0x2000
-//#define BLUE_FRET		0x4000
-//#define ORANGE_FRET		0x8000
-//#define WHAMMY_BAR		8
-
 //These are stick values
 #define PSS_RX 5
 #define PSS_RY 6
@@ -75,20 +62,28 @@
 #define DAT       PAin(15)//PA15
 
 
-#define DIGITAL_MODE
-#define ANALOG_MODE
+
+
+typedef enum 
+{
+    DIGITAL_MODE = 0x40,
+    ANALOG_MODE  = 0x70,
+    CONFIG_MODE = 0xf0,
+    DISCONNECTED = 0xff
+}PS2_MODE;
 
 
 
-extern uint8_t ps2_resp_data[21];
+extern PS2_MODE ps2_mode;
 
-extern void ps2_init(void);
-uint8_t  sendCommandLists(const uint8_t *byte,uint8_t len);
-void reset_resp_data(void);
-
-
-
-
+void    ps2_init(void);
+uint8_t sendCommandLists(const uint8_t *byte,uint8_t len);
+void    read_gamepad(void);
+uint8_t getButtonStatus(const uint16_t button);
+uint8_t isButtonStatusChanged(const uint16_t button);
+uint8_t buttonPressed(const uint16_t button);
+uint8_t buttonReleased(const uint16_t button);
+uint8_t getAnalogValue(const uint8_t button);
 
 
 
