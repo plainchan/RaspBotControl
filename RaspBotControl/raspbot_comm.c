@@ -119,21 +119,17 @@ int decode_frame(Stream_msgs *stream_msgs)
 
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
-//	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) == SET) // 检查 ORE 标志
-//  {
-//		USART_ReceiveData(USART1);
-//		USART_ClearFlag(USART1,USART_FLAG_ORE);
-//  }
-//	if(USART_GetFlagStatus(USART1,USART_FLAG_FE) == SET) // 检查 ORE 标志
-//  {
-//		USART_ReceiveData(USART1);
-//		USART_ClearFlag(USART1,USART_FLAG_FE);
-//  }
+
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 	{
 		receiveFlag = parse_stream(&stream_msgs,USART_ReceiveData(USART1));
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
   } 
+	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) == SET) // 检查 ORE 标志
+  {
+		USART_ReceiveData(USART1);
+		USART_ClearFlag(USART1,USART_FLAG_ORE);
+  }
 } 
 uint8_t bytesBuff[MAX_BUFF_SIZE]={0};
 
@@ -581,7 +577,12 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 			}  /* switch */
 			
 		}
-	} 
+	}
+	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) == SET) // 检查 ORE 标志
+  {
+		USART_ReceiveData(USART1);
+		USART_ClearFlag(USART1,USART_FLAG_ORE);
+  }
 } 
 
 /**
