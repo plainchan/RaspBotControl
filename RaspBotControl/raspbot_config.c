@@ -502,7 +502,7 @@ void stateLED_init()
 }
 
 /**
- * @brief  安全模式，长按案件上锁/解锁
+ * @brief  安全模式，长按按键上锁/解锁
  */
 volatile char safe_mode = 0;
 void security_mode(void)

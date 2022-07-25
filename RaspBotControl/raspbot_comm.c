@@ -501,7 +501,7 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
 }
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
- //以下标志位，不会产生中断，因为它和RXNE一起出。只有开启DMAR: DMA使能接收 (DMA enable receiver)，才会产生中断
+ //以下标志位，不会产生中断，因为它和RXNE一起出现。只有开启DMAR: DMA使能接收 (DMA enable receiver)，才会产生中断
 	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) != RESET) // 检查 ORE 标志
   {
 		USART_ReceiveData(USART1);
@@ -541,7 +541,7 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 	
 	
 	
-	 //以下标志位，不会产生中断，因为它和RXNE一起出。只有开启DMAR: DMA使能接收 (DMA enable receiver)，才会产生中断
+	 //以下标志位，不会产生中断，因为它和RXNE一起出现。只有开启DMAR: DMA使能接收 (DMA enable receiver)，才会产生中断
 	if(USART_GetFlagStatus(USART2,USART_FLAG_ORE) != RESET) // 检查 ORE 标志
   {
 		USART_ReceiveData(USART2);
@@ -619,59 +619,5 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
  */
 void USART3_IRQHandler(void)                	//串口1中断服务程序
 {
-//	static uint8_t buff[11]={0};
-//	static uint8_t count=0;
-//	static uint16_t checksum=0x55;
-//	++a;
-//	if(USART_GetITStatus(USART3, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
-//	{
-//		buff[count++] = USART_ReceiveData(USART3);
-//		a = count;
-//		if(count==1 && buff[0]!=0x55 )  //检查帧头
-//		{
-//			count = 0;
-//			return;
-//		}
-//		else if(count<=10)
-//		{
-//			checksum+=buff[count-1];  //header+acc+gyr
-//			if(count == 10)
-//			{
-//				checksum = !(checksum>>8|(checksum&0x00FF));
-//			}
-//		}
-//		else if(count>10)
-//		{
-//			count=0;
-
-////			if(checksum!=buff[10]) 
-////			{
-////				checksum = 0x55;
-////				return;
-////			}/* 校验错误 */
-//			checksum = 0x55;
-
-//			switch (buff[1])            //标签
-//			{
-//			case 0x51:  
-//				imu_raw_msg.accRaw[0]=Bytes2INT16Conv(&buff[2]);
-//				imu_raw_msg.accRaw[1]=Bytes2INT16Conv(&buff[4]);
-//				imu_raw_msg.accRaw[2]=Bytes2INT16Conv(&buff[6]);
-//				break;  /* 加速度 */
-//			case 0x52:  
-//				imu_raw_msg.gyrRaw[0]=Bytes2INT16Conv(&buff[2]);
-//				imu_raw_msg.gyrRaw[1]=Bytes2INT16Conv(&buff[4]);
-//				imu_raw_msg.gyrRaw[2]=Bytes2INT16Conv(&buff[6]);
-//				break;	/* 角速度 */
-//			case 0x53:  
-//				imu_raw_msg.eluRaw[0]=Bytes2INT16Conv(&buff[2]);
-//				imu_raw_msg.eluRaw[1]=Bytes2INT16Conv(&buff[4]);
-//				imu_raw_msg.eluRaw[2]=Bytes2INT16Conv(&buff[6]);
-//				break;	/* 角度 */	
-//			default:
-//				break;
-//			}  /* switch */
-//			
-//		}
-//	} 
+	
 } 

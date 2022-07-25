@@ -172,7 +172,7 @@ void ps2_control(void)
 }
 void speed_control()
 {
-
+	
    //limit speed
   if(motor_msgs.velocity > MAX_SPEED) motor_msgs.velocity=MAX_SPEED;
   else if(motor_msgs.velocity < -MAX_SPEED*0.6) motor_msgs.velocity=-MAX_SPEED*0.6;
@@ -238,23 +238,14 @@ void TIM1_UP_IRQHandler(void)
 	robot_msgs.l_encoder_pulse = -Read_Encoder(2);
 	robot_msgs.r_encoder_pulse = +Read_Encoder(4);
 
+	read_gamepad();    //0.16ms(2 bytes),0.4ms(5 bytes),0.72ms(9 bytes),1.68ms(21 bytes)
+	ps2_control();
 
 	//速度解算与PID控制
 	speed_control();
 	
-	
-	//发送数据
-#ifndef sendIMUByInterrupt
-	if (!uart_lock)
-		sendFrame_Encoder_dpkg(&robot_msgs);
-	else
-		uart_lock = 2;
-#else
-//	sendFrame_Multi_dpkg();
-#endif
-	
-	
-
+	//send data
+	sendFrame_Encoder_dpkg(&robot_msgs);  //0.88ms
 }
 
 
