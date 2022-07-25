@@ -544,7 +544,7 @@ void board_configInit(void)
 	motor_init();
     encoder_init();
 	UART1_Init(115200);    // 通信串口
-//	UART2_Init(115200);    // IMU串口
+	UART2_Init(115200);    // IMU串口
 //	UART3_Init(115200);    // 串口3引出端口
 
 	TIM1_IT_Init(10); /* must initialize after usart,because send data in interrupts */

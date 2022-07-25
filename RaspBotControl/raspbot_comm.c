@@ -117,20 +117,7 @@ int decode_frame(Stream_msgs *stream_msgs)
 	return 1;
 }
 
-void USART1_IRQHandler(void)                	//串口1中断服务程序
-{
 
-	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
-	{
-		receiveFlag = parse_stream(&stream_msgs,USART_ReceiveData(USART1));
-		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-  } 
-	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) == SET) // 检查 ORE 标志
-  {
-		USART_ReceiveData(USART1);
-		USART_ClearFlag(USART1,USART_FLAG_ORE);
-  }
-} 
 uint8_t bytesBuff[MAX_BUFF_SIZE]={0};
 
 void setBuffHeaderCRC(uint8_t *buff,uint8_t value)
@@ -512,7 +499,34 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
 //	}
 	
 }
+void USART1_IRQHandler(void)                	//串口1中断服务程序
+{
+ //以下标志位，不会产生中断，因为它和RXNE一起出。只有开启DMAR: DMA使能接收 (DMA enable receiver)，才会产生中断
+	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) != RESET) // 检查 ORE 标志
+  {
+		USART_ReceiveData(USART1);
+		USART_ClearFlag(USART1,USART_FLAG_ORE);
+  }
+	if (USART_GetFlagStatus(USART1, USART_FLAG_FE) != RESET) 
+	{
+		USART_ReceiveData(USART1); 
+		USART_ClearFlag(USART1, USART_FLAG_FE);
+	} 	//
+	if(USART_GetFlagStatus(USART1, USART_FLAG_NE) != RESET)         
+	{        
+		USART_ReceiveData(USART1);  
+		USART_ClearFlag(USART1, USART_FLAG_NE);  			  
+	}
+	
+	//接收中断
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断
+	{
+		receiveFlag = parse_stream(&stream_msgs,USART_ReceiveData(USART1));
+		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
+  } 
+ 																									 //																									 //
 
+} 
 
 /**
  * @brief 串口读取IMU数据
@@ -524,8 +538,28 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 	static uint8_t buff[11]={0};
 	static uint8_t count=0;
 	static uint16_t checksum=0x55;
+	
+	
+	
+	 //以下标志位，不会产生中断，因为它和RXNE一起出。只有开启DMAR: DMA使能接收 (DMA enable receiver)，才会产生中断
+	if(USART_GetFlagStatus(USART2,USART_FLAG_ORE) != RESET) // 检查 ORE 标志
+  {
+		USART_ReceiveData(USART2);
+		USART_ClearFlag(USART2,USART_FLAG_ORE);
+  }
+	if (USART_GetFlagStatus(USART2, USART_FLAG_FE) != RESET) 
+	{
+		USART_ReceiveData(USART2); 
+		USART_ClearFlag(USART2, USART_FLAG_FE);
+	} 	//
+	if(USART_GetFlagStatus(USART2, USART_FLAG_NE) != RESET)         
+	{        
+		USART_ReceiveData(USART2);  
+		USART_ClearFlag(USART2, USART_FLAG_NE);  			  
+	}
+	
 
-	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
+	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //接收中断
 	{
 		buff[count++] = USART_ReceiveData(USART2);
 		if(count==1 && buff[0]!=0x55 )  //检查帧头
@@ -578,11 +612,6 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 			
 		}
 	}
-	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) == SET) // 检查 ORE 标志
-  {
-		USART_ReceiveData(USART1);
-		USART_ClearFlag(USART1,USART_FLAG_ORE);
-  }
 } 
 
 /**
