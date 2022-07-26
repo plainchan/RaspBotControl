@@ -75,8 +75,8 @@ void read_gamepad(void)
     
     reset_resp_data();
 	
-		CS = 0;
-		delay_us(CLK_DELAY);
+	CS = 0;
+	delay_us(CLK_DELAY);
     for(int i=0;i<21;++i)
     {
         if(i>resp_len) break;
@@ -92,22 +92,11 @@ void read_gamepad(void)
             case 0x73: ps2_mode = ANALOG_MODE; resp_len = 9; break;
             case 0x79: ps2_mode = ANALOG_MODE; resp_len = 21; break;
             case 0xF3: ps2_mode = CONFIG_MODE; resp_len = 9; break;
-            default: ps2_mode = DISCONNECTED; resp_len = 5; break;
+            default: ps2_mode = DISCONNECTED; resp_len = 2; break;
             }
         }
     }
-		CS = 1;
-		
-//		oled_digit(35,12,ps2_resp_data[0],3,12);
-//		oled_digit(35,24,ps2_resp_data[1],3,12);
-//		oled_digit(35,36,ps2_resp_data[2],3,12);
-//		oled_digit(35,48,ps2_resp_data[3],3,12);
-//		oled_digit(59,12,ps2_resp_data[4],3,12);
-//		oled_digit(59,24,ps2_resp_data[5],3,12);
-//		oled_digit(59,36,ps2_resp_data[6],3,12);
-//		oled_digit(59,48,ps2_resp_data[7],3,12);
-//		oled_digit(83,12,ps2_resp_data[8],3,12);
-//		oled_digit(83,24,resp_len,2,12);
+	CS = 1;
     last_buttons_status = buttons_status;
     buttons_status = (uint16_t)ps2_resp_data[4]<<8 | ps2_resp_data[3];
     
