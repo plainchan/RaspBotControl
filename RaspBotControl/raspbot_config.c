@@ -556,6 +556,6 @@ void board_configInit(void)
 	//WHY???????
 	ps2_init();
 
-  delay_ms(1000);
+    delay_ms(1000);
 	OLED_Clear();
 }

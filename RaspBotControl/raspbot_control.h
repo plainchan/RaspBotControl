@@ -7,19 +7,20 @@
 
 #define  G  9.780
 
-#define ANALOG_VOL    3.30         //Ä£ÄâµçÑ¹²Î¿¼Öµ
-#define COV_COUNT     5.0          //µçÑ¹Ñ­»·¼ì²â´ÎÊý
-#define VOL_SCALE     4.333        //·ÖÑ¹±ÈÀý     10K/3K+1
-#define LOW_VOLTAGE   9.6          //×îµÍµçÑ¹
+#define ANALOG_VOL    3.30         //Ä£ï¿½ï¿½ï¿½Ñ¹ï¿½Î¿ï¿½Öµ
+#define COV_COUNT     5.0          //ï¿½ï¿½Ñ¹Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+#define VOL_SCALE     4.333        //ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½     10K/3K+1
+#define LOW_VOLTAGE   9.6          //ï¿½ï¿½Íµï¿½Ñ¹
 #define BAT_RESOLUTION 0.05
 
 #define MAX_SPEED      1.2
 #define MAX_STEERING   2
 
 
-#define  JOYSTICK_SPEED_PRIORITY        100
-#define  COMPUTER_SPEED_PRIORITY        90
-#define  DISCONNECT_SPEED_PRIORITY      80
+#define  ATTRIBUTION_JOYSTICK_SPEED       0
+#define  ATTRIBUTION_COMPUTER_SPEED       1
+#define  ATTRIBUTION_DISCONNECT_SPEED     2
+#define  ATTRIBUTION_NONE_SPEED           3
 
 #define joy_forward_scale    0.003f
 #define joy_backward_scale   0.0015f
@@ -59,7 +60,7 @@ typedef struct  Motor_Controlled_Params
 {
 	float      velocity;        //
 	float      angular;         //
-	uint8_t    priority;
+	uint8_t    attribution;
 }Motor_msgs; 
 
 /**

@@ -6,7 +6,7 @@
 #include "ps2lib.h"
 
 
-/***** Êý¾Ý½â°ü½á¹¹Ìå  *****/
+/***** ï¿½ï¿½ï¿½Ý½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½  *****/
 Stream_msgs               stream_msgs={0};
 
 
@@ -41,17 +41,17 @@ int parse_stream(Stream_msgs *stream_msgs,uint8_t buff)
 {
 	static uint16_t bytesCount=0;
 	stream_msgs->stream_buff[bytesCount++] = buff;
-	if(bytesCount == FRAME_HEAD_OFFSET) //¼ì²éÖ¡Í·
+	if(bytesCount == FRAME_HEAD_OFFSET) //ï¿½ï¿½ï¿½Ö¡Í·
 	{
 		
 		if (stream_msgs->stream_buff[0] != Header1 || stream_msgs->stream_buff[1] != Header2)
 		{
 			stream_msgs->stream_buff[0] = stream_msgs->stream_buff[1];
 			bytesCount = 1;
-			return -1; //´íÎóÖ¡
+			return -1; //ï¿½ï¿½ï¿½ï¿½Ö¡
 		}
 	}
-	else if (bytesCount == FRAME_DPKG_LEN_OFFSET) // DPKG ³¤¶È
+	else if (bytesCount == FRAME_DPKG_LEN_OFFSET) // DPKG ï¿½ï¿½ï¿½ï¿½
 	{
 		stream_msgs->len = stream_msgs->stream_buff[bytesCount - 1];
 		if (stream_msgs->len > MAX_DPKG_SIZE)
@@ -62,17 +62,17 @@ int parse_stream(Stream_msgs *stream_msgs,uint8_t buff)
 	}
 	else if (bytesCount == FRAME_HEAD_CRC_OFFSET) // crc
 	{
-		/*crc Ð£Ñé  Ô¤Áô½Ó¿Ú*/
+		/*crc Ð£ï¿½ï¿½  Ô¤ï¿½ï¿½ï¿½Ó¿ï¿½*/
 		stream_msgs->crc = stream_msgs->stream_buff[bytesCount - 1];
 		if(stream_msgs->crc!=crc_8(stream_msgs->stream_buff,FRAME_CALCU_CRC_BYTES))
 		{
 			bytesCount = 0;
 			return -2;
 		}
-	}        //Ö¡ÐÅÏ¢(Ö¡Í·+Ö¡Êý¾ÝÓò³¤¶È+Ö¡CRC)+Êý¾ÝÓò(DATA_TAGE+DATA)+Êý¾ÝÓòCRC == Ò»Ö¡½ÓÊÕÍê³É
+	}        //Ö¡ï¿½ï¿½Ï¢(Ö¡Í·+Ö¡ï¿½ï¿½ï¿½ï¿½ï¿½ò³¤¶ï¿½+Ö¡CRC)+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(DATA_TAGE+DATA)+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½CRC == Ò»Ö¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	else if (bytesCount >= FRAME_INFO_SIZE + stream_msgs->len+FRAME_DPKG_CRC_BYTES)
 	{
-//		USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); //¹Ø±Õ´®¿Ú½ÓÊÕÖÐ¶Ï ÓÉÓÚÔÚ´®¿ÚÖÐ¶Ë½âÂë£¬¿ÉÄÜ½âÂëÊ±³¤´óÓÚ´®¿ÚÖÐ¶ÏÊ±¼ä£¬Ôì³ÉÖÐ¶Ïµþ¼Ó
+//		USART_ITConfig(USART1, USART_IT_RXNE, DISABLE); //ï¿½Ø±Õ´ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½Ð¶Ë½ï¿½ï¿½ë£¬ï¿½ï¿½ï¿½Ü½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½Ê±ï¿½ä£¬ï¿½ï¿½ï¿½ï¿½Ð¶Ïµï¿½ï¿½ï¿½
 		stream_msgs->crc = Bytes2U16Conv(&stream_msgs->stream_buff[bytesCount-FRAME_DPKG_CRC_BYTES]);
 		bytesCount = 0;
 		if(stream_msgs->crc!=crc_16(&stream_msgs->stream_buff[FRAME_INFO_SIZE],stream_msgs->len))
@@ -82,7 +82,7 @@ int parse_stream(Stream_msgs *stream_msgs,uint8_t buff)
 		return decode_frame(stream_msgs);
 	}
 
-  return 0; //Ö¡Î´¾ÍÐ÷
+  return 0; //Ö¡Î´ï¿½ï¿½ï¿½ï¿½
 }
 
 int decode_frame(Stream_msgs *stream_msgs)
@@ -102,7 +102,7 @@ int decode_frame(Stream_msgs *stream_msgs)
 			{
 				motor_msgs.velocity=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
 				motor_msgs.angular=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
-				motor_msgs.priority = COMPUTER_SPEED_PRIORITY;
+				motor_msgs.attribution = ATTRIBUTION_COMPUTER_SPEED;
 			}
 			break;
 		case pid_tag:
@@ -115,7 +115,7 @@ int decode_frame(Stream_msgs *stream_msgs)
 		}
 		++offset;
 	}
-//	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//¿ªÆô´®¿Ú½ÓÊÕÖÐ¶Ï
+//	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
 
 	return 1;
 }
@@ -137,7 +137,7 @@ void setBuffDpkgCRC(uint8_t *buff,uint16_t value)
 }
 
 /*
- * @brief ·¢ËÍ»úÆ÷×´Ì¬ÐÅÏ¢(µçÑ¹¡¢±àÂëÆ÷¡¢IMU)
+ * @brief ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½Ï¢(ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IMU)
  */
 void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs)
 {
@@ -193,7 +193,7 @@ void sendFrame_Robot_dpkg(const Robot_msgs* robot_msgs)
 	}
 }
 /*
- * @brief ·¢ËÍIMU ¼ÓËÙ¶È¡¢½ÇËÙ¶È¡¢´ÅÁ¦¼Æ[optional]ºÍ½Ç¶È
+ * @brief ï¿½ï¿½ï¿½ï¿½IMU ï¿½ï¿½ï¿½Ù¶È¡ï¿½ï¿½ï¿½ï¿½Ù¶È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[optional]ï¿½Í½Ç¶ï¿½
  */
 void sendFrame_IMU_dpkg(const Robot_msgs* robot_msgs)
 {
@@ -241,7 +241,7 @@ void sendFrame_IMU_dpkg(const Robot_msgs* robot_msgs)
 }
 
 /*
- * @brief ·¢ËÍIMU ¼ÓËÙ¶È¡¢½ÇËÙ¶ÈºÍ´ÅÁ¦¼Æ[optional]
+ * @brief ï¿½ï¿½ï¿½ï¿½IMU ï¿½ï¿½ï¿½Ù¶È¡ï¿½ï¿½ï¿½ï¿½Ù¶ÈºÍ´ï¿½ï¿½ï¿½ï¿½ï¿½[optional]
  */
 void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 {
@@ -285,7 +285,7 @@ void sendFrame_IMU_Sensor_dpkg(const Robot_msgs* robot_msgs)
 }
 
 /*
- * @brief ·¢ËÍIMU ¼ÓËÙ¶È¡¢½ÇËÙ¶È¡¢´ÅÁ¦¼Æ[optional]ºÍ½Ç¶È
+ * @brief ï¿½ï¿½ï¿½ï¿½IMU ï¿½ï¿½ï¿½Ù¶È¡ï¿½ï¿½ï¿½ï¿½Ù¶È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½[optional]ï¿½Í½Ç¶ï¿½
  */
 void sendFrame_IMU_Raw_dpkg(const IMU_Raw_msg* imu_raw_msg)
 {
@@ -333,7 +333,7 @@ void sendFrame_IMU_Raw_dpkg(const IMU_Raw_msg* imu_raw_msg)
 }
 
 /*
- * @brief ·¢ËÍµç»ú±àÂëÆ÷Âö³å
+ * @brief ï¿½ï¿½ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
  */
 void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs)
 {
@@ -367,7 +367,7 @@ void sendFrame_Encoder_dpkg(const Robot_msgs* robot_msgs)
 }
 
 /*
- * @brief ·¢ËÍµç³ØµçÑ¹
+ * @brief ï¿½ï¿½ï¿½Íµï¿½Øµï¿½Ñ¹
  */
 void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs)
 {
@@ -400,7 +400,7 @@ void sendFrame_Voltage_dpkg(const Robot_msgs* robot_msgs)
 }
 
 /*
- * @brief ·¢ËÍTAGÊý¾Ý°ü
+ * @brief ï¿½ï¿½ï¿½ï¿½TAGï¿½ï¿½ï¿½Ý°ï¿½
  */
 void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
 {
@@ -502,10 +502,10 @@ void sendFrame_Multi_dpkg(const Robot_msgs* robot_msgs)
 //	}
 	
 }
-void USART1_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
+void USART1_IRQHandler(void)                	//ï¿½ï¿½ï¿½ï¿½1ï¿½Ð¶Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 {
- //ÒÔÏÂ±êÖ¾Î»£¬²»»á²úÉúÖÐ¶Ï£¬ÒòÎªËüºÍRXNEÒ»Æð³öÏÖ¡£Ö»ÓÐ¿ªÆôDMAR: DMAÊ¹ÄÜ½ÓÊÕ (DMA enable receiver)£¬²Å»á²úÉúÖÐ¶Ï
-	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) != RESET) // ¼ì²é ORE ±êÖ¾
+ //ï¿½ï¿½ï¿½Â±ï¿½Ö¾Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½RXNEÒ»ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½Ö»ï¿½Ð¿ï¿½ï¿½ï¿½DMAR: DMAÊ¹ï¿½Ü½ï¿½ï¿½ï¿½ (DMA enable receiver)ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+	if(USART_GetFlagStatus(USART1,USART_FLAG_ORE) != RESET) // ï¿½ï¿½ï¿½ ORE ï¿½ï¿½Ö¾
   {
 		USART_ReceiveData(USART1);
 		USART_ClearFlag(USART1,USART_FLAG_ORE);
@@ -521,8 +521,8 @@ void USART1_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 		USART_ClearFlag(USART1, USART_FLAG_NE);  			  
 	}
 	
-	//½ÓÊÕÖÐ¶Ï
-	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //½ÓÊÕÖÐ¶Ï
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
 	{
 		receiveFlag = parse_stream(&stream_msgs,USART_ReceiveData(USART1));
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
@@ -532,11 +532,11 @@ void USART1_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 } 
 
 /**
- * @brief ´®¿Ú¶ÁÈ¡IMUÊý¾Ý
+ * @brief ï¿½ï¿½ï¿½Ú¶ï¿½È¡IMUï¿½ï¿½ï¿½ï¿½
  * 
  */
 short imu_ready_flag=0x000f;
-void USART2_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
+void USART2_IRQHandler(void)                	//ï¿½ï¿½ï¿½ï¿½1ï¿½Ð¶Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 {
 	static uint8_t buff[11]={0};
 	static uint8_t count=0;
@@ -544,8 +544,8 @@ void USART2_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 	
 	
 	
-	 //ÒÔÏÂ±êÖ¾Î»£¬²»»á²úÉúÖÐ¶Ï£¬ÒòÎªËüºÍRXNEÒ»Æð³öÏÖ¡£Ö»ÓÐ¿ªÆôDMAR: DMAÊ¹ÄÜ½ÓÊÕ (DMA enable receiver)£¬²Å»á²úÉúÖÐ¶Ï
-	if(USART_GetFlagStatus(USART2,USART_FLAG_ORE) != RESET) // ¼ì²é ORE ±êÖ¾
+	 //ï¿½ï¿½ï¿½Â±ï¿½Ö¾Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶Ï£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½RXNEÒ»ï¿½ï¿½ï¿½ï¿½Ö¡ï¿½Ö»ï¿½Ð¿ï¿½ï¿½ï¿½DMAR: DMAÊ¹ï¿½Ü½ï¿½ï¿½ï¿½ (DMA enable receiver)ï¿½ï¿½ï¿½Å»ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
+	if(USART_GetFlagStatus(USART2,USART_FLAG_ORE) != RESET) // ï¿½ï¿½ï¿½ ORE ï¿½ï¿½Ö¾
   {
 		USART_ReceiveData(USART2);
 		USART_ClearFlag(USART2,USART_FLAG_ORE);
@@ -562,10 +562,10 @@ void USART2_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 	}
 	
 
-	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //½ÓÊÕÖÐ¶Ï
+	if(USART_GetITStatus(USART2, USART_IT_RXNE) != RESET)  //ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
 	{
 		buff[count++] = USART_ReceiveData(USART2);
-		if(count==1 && buff[0]!=0x55 )  //¼ì²éÖ¡Í·
+		if(count==1 && buff[0]!=0x55 )  //ï¿½ï¿½ï¿½Ö¡Í·
 		{
 			count = 0;
 			return;
@@ -586,29 +586,29 @@ void USART2_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 //			{
 //				checksum = 0x55;
 //				return;
-//			}/* Ð£Ñé´íÎó */
+//			}/* Ð£ï¿½ï¿½ï¿½ï¿½ï¿½ */
 			checksum = 0x55;
 
-			switch (buff[1])            //±êÇ©
+			switch (buff[1])            //ï¿½ï¿½Ç©
 			{
 			case 0x51:  
 				imu_raw_msg.accRaw[0]=Bytes2INT16Conv(&buff[2]);
 				imu_raw_msg.accRaw[1]=Bytes2INT16Conv(&buff[4]);
 				imu_raw_msg.accRaw[2]=Bytes2INT16Conv(&buff[6]);
 				imu_ready_flag|=0xf000;
-				break;  /* ¼ÓËÙ¶È */
+				break;  /* ï¿½ï¿½ï¿½Ù¶ï¿½ */
 			case 0x52:  
 				imu_raw_msg.gyrRaw[0]=Bytes2INT16Conv(&buff[2]);
 				imu_raw_msg.gyrRaw[1]=Bytes2INT16Conv(&buff[4]);
 				imu_raw_msg.gyrRaw[2]=Bytes2INT16Conv(&buff[6]);
 				imu_ready_flag|=0x0f00;
-				break;	/* ½ÇËÙ¶È */
+				break;	/* ï¿½ï¿½ï¿½Ù¶ï¿½ */
 			case 0x53:  
 				imu_raw_msg.eluRaw[0]=Bytes2INT16Conv(&buff[2]);
 				imu_raw_msg.eluRaw[1]=Bytes2INT16Conv(&buff[4]);
 				imu_raw_msg.eluRaw[2]=Bytes2INT16Conv(&buff[6]);
 				imu_ready_flag|=0x00f0;
-				break;	/* ½Ç¶È */	
+				break;	/* ï¿½Ç¶ï¿½ */	
 			default:
 				break;
 			}  /* switch */
@@ -618,9 +618,9 @@ void USART2_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
 } 
 
 /**
- * @brief ´®¿Ú3Òý³ö¶Ë¿Ú
+ * @brief ï¿½ï¿½ï¿½ï¿½3ï¿½ï¿½ï¿½ï¿½ï¿½Ë¿ï¿½
  */
-void USART3_IRQHandler(void)                	//´®¿Ú1ÖÐ¶Ï·þÎñ³ÌÐò
+void USART3_IRQHandler(void)                	//ï¿½ï¿½ï¿½ï¿½1ï¿½Ð¶Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 {
 	
 } 

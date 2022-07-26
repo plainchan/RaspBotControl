@@ -51,22 +51,13 @@ void voltage_check(void)
 		batteryState = BATTERY_LOW;
 }
 
-void lowVoltageAlarm(void)
-{
-	if (flag_500ms == 50)
-	{
-		oled_picture(40, 20, 48, 24, LOW_BATTERY);
-		flag_500ms = 0;
-	}
-	else if (flag_500ms == 1)
-		OLED_Clear();
-}
+
 
 void oled_showContent(void)
 {
-	//显示电压
-//	oled_float(74, 0, robot_msgs.voltage, 1, 3, 12);
-//	oled_char(98, 0, 'V', 12, 1);
+    // // 显示电压
+    // oled_float(74, 0, robot_msgs.voltage, 1, 3, 12);
+    // oled_char(98, 0, 'V', 12, 1);
 	switch (batteryState)
 	{
 	case BATTERY_FULL:
@@ -81,12 +72,12 @@ void oled_showContent(void)
 	case BATTERY_LOW:
 		oled_picture(104, 0, 24, 12, BATTERY_1);
 		break;
-	case BATTERY_ALARM: /*lowVoltageAlarm();*/
+	case BATTERY_ALARM: 
+        oled_picture(104, 0, 24, 12, BATTERY_0);
 		break;
 	}
 
 	//显示受控速度
-
 	if (motor_msgs.velocity >= 0.0)
 		oled_char(98, 36, '+', 12, 1);
 	else
@@ -111,11 +102,19 @@ void oled_showContent(void)
 	oled_digit(7, 40, robot_msgs.l_encoder_pulse, 4, 12);
 	oled_digit(7, 52, robot_msgs.r_encoder_pulse, 4, 12);
 	
-	//PID
-//	oled_char(0,0,'P',12,0);oled_float(8,0,pid.Kp, 1, 4,12);
-//	oled_char(0,13,'I',12,0);oled_float(8,13, pid.Ki, 1, 2,12);
-//	oled_char(0,26,'D',12,0);oled_float(8,26, pid.Kd, 1, 3,12);
+	// PID
+	// oled_char(0,0,'P',12,0);oled_float(8,0,pid.Kp, 1, 4,12);
+	// oled_char(0,13,'I',12,0);oled_float(8,13, pid.Ki, 1, 2,12);
+	// oled_char(0,26,'D',12,0);oled_float(8,26, pid.Kd, 1, 3,12);
 	
+    //显示ps2
+    switch(ps2_mode)
+    {
+        case DIGITAL_MODE: oled_char(0,0,'D',12,1); break;
+        case ANALOG_MODE:  oled_char(0,0,'A',12,1); break;
+        case CONFIG_MODE:  oled_char(0,0,'C',12,1); break;
+        case DISCONNECTED: oled_char(0,0,'N',12,1); break;
+    }
 
 	oled_update();
 }
@@ -133,6 +132,7 @@ void ps2_control(void)
 		int speed_analog_value  = JOYSTICK_INIT_VALUE - getJoyAnalogValue(PSS_LY);
 		speed_analog_value =abs(speed_analog_value)<2?0:speed_analog_value;
 		motor_msgs.velocity = speed_analog_value>=0?speed_analog_value*joy_forward_scale:speed_analog_value*joy_backward_scale;
+
 		//nonlinearity
 		if(abs(speed_analog_value)<50)
 			motor_msgs.velocity*=1.2;
@@ -140,32 +140,33 @@ void ps2_control(void)
 		int angular_analog_value = JOYSTICK_INIT_VALUE - getJoyAnalogValue(PSS_RX);
 		angular_analog_value =abs(angular_analog_value)<2?0:angular_analog_value;
 		motor_msgs.angular = angular_analog_value*joy_steering_scale;
+
 //		//nonlinearity
 //		if(abs(angular_analog_value)<50)
 //			motor_msgs.angular*=1.2;
 //		
-		// accelerate
+		// Accelerate
 		if(getButtonStatus(PSB_R1))
 		{
 			motor_msgs.velocity *=2.0;
 			motor_msgs.angular*=2.5;
 		}
-		//Braking
+		// Braking
 		if(getButtonStatus(PSB_L1))
 		{
 			motor_msgs.velocity = 0.0;
 			motor_msgs.angular = 0.0;
 		}
 		
-		motor_msgs.priority = JOYSTICK_SPEED_PRIORITY;
+		motor_msgs.attribution = ATTRIBUTION_JOYSTICK_SPEED;
 	}
 	else if(IS_DISCONNECTED(ps2_mode))
 	{
-		if(motor_msgs.priority != COMPUTER_SPEED_PRIORITY)
+		if(motor_msgs.attribution != ATTRIBUTION_COMPUTER_SPEED)
 		{
 			motor_msgs.velocity=0.0;
 			motor_msgs.angular = 0.0;
-			motor_msgs.priority = DISCONNECT_SPEED_PRIORITY;
+			motor_msgs.attribution = ATTRIBUTION_DISCONNECT_SPEED;
 		}
 	}
 	else
@@ -223,8 +224,10 @@ void speed_control()
 
 
 	motor_pwm(pid.out_pwm[0],pid.out_pwm[1]);
-	
 
+    motor_msgs.velocity = 0.0;
+    motor_msgs.angular = 0.0;
+    motor_msgs.attribution = ATTRIBUTION_NONE_SPEED;
 }
 
 /**
