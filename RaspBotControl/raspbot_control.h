@@ -17,6 +17,9 @@
 #define MAX_STEERING   2
 
 
+#define  JOYSTICK_SPEED_PRIORITY        100
+#define  COMPUTER_SPEED_PRIORITY        90
+#define  DISCONNECT_SPEED_PRIORITY      80
 
 #define joy_forward_scale    0.003f
 #define joy_backward_scale   0.0015f
@@ -56,6 +59,7 @@ typedef struct  Motor_Controlled_Params
 {
 	float      velocity;        //
 	float      angular;         //
+	uint8_t    priority;
 }Motor_msgs; 
 
 /**

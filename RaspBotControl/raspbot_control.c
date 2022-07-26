@@ -156,11 +156,17 @@ void ps2_control(void)
 			motor_msgs.velocity = 0.0;
 			motor_msgs.angular = 0.0;
 		}
+		
+		motor_msgs.priority = JOYSTICK_SPEED_PRIORITY;
 	}
 	else if(IS_DISCONNECTED(ps2_mode))
 	{
-		motor_msgs.velocity=0.0;
-		motor_msgs.angular = 0.0;
+		if(motor_msgs.priority != COMPUTER_SPEED_PRIORITY)
+		{
+			motor_msgs.velocity=0.0;
+			motor_msgs.angular = 0.0;
+			motor_msgs.priority = DISCONNECT_SPEED_PRIORITY;
+		}
 	}
 	else
 	{

@@ -99,8 +99,11 @@ int decode_frame(Stream_msgs *stream_msgs)
 			if(IS_JOYSTICK_MODE(ps2_mode))
 				offset+=4;
 			else
+			{
 				motor_msgs.velocity=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
 				motor_msgs.angular=Bytes2INT16Conv(&buff[offset+1])/1000.0;offset+=2;
+				motor_msgs.priority = COMPUTER_SPEED_PRIORITY;
+			}
 			break;
 		case pid_tag:
 			pid.Kp=Bytes2INT16Conv(&buff[offset+1])/10.0;offset+=2;
