@@ -532,30 +532,32 @@ void board_configInit(void)
 	//中断分组
 	NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
 	
-
+	
 	delay_init();
 	stateLED_init();
 
 	oled_init();
 	oled_picture(0, 0, 128, 64, start_bmp);
 	oled_update();
-	
+
     adc_init();
 	motor_init();
     encoder_init();
 	UART1_Init(460800);    // 通信串口
 	UART2_Init(115200);    // IMU串口
-//	UART3_Init(115200);    // 串口3引出端口
+	UART3_Init(115200);    // 串口3引出端口
 
 	TIM1_IT_Init(10); /* must initialize after usart,because send data in interrupts */
-	
-	
+
+
 	//Due to the occupation of JTAG's ports,must configure the remapping of IO.
 	//It can't work if the position of the function "ps2_init()" ahead any sentens int the function "board_configInit";
 	// So the function "ps2_init()" must be in the end.
 	//WHY???????
 	ps2_init();
+	
 
-    delay_ms(1000);
+	delay_ms(1000);	
 	OLED_Clear();
+
 }

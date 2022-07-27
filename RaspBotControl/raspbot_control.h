@@ -7,10 +7,10 @@
 
 #define  G  9.780
 
-#define ANALOG_VOL    3.30         //Ä£ï¿½ï¿½ï¿½Ñ¹ï¿½Î¿ï¿½Öµ
-#define COV_COUNT     5.0          //ï¿½ï¿½Ñ¹Ñ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-#define VOL_SCALE     4.333        //ï¿½ï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½     10K/3K+1
-#define LOW_VOLTAGE   9.6          //ï¿½ï¿½Íµï¿½Ñ¹
+#define ANALOG_VOL    3.30          //Ä£ÄâµçÑ¹²Î¿¼Öµ
+#define COV_COUNT     5.0         	//µçÑ¹Ñ­»·¼ì²â´ÎÊý
+#define VOL_SCALE     4.333         //·ÖÑ¹±ÈÀý     10K/3K+1
+#define LOW_VOLTAGE   9.6           //×îµÍµçÑ¹
 #define BAT_RESOLUTION 0.05
 
 #define MAX_SPEED      1.2
