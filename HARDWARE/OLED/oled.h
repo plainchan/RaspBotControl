@@ -49,7 +49,7 @@ void oled_str(u8 x,u8 y,const u8 *p,u8 size);
 void oled_print(unsigned char x,unsigned char y,unsigned char ch[]);
 void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size);
 void oled_picture(u8 x,u8 y,u8 w,u8 h,const unsigned char *bmp);
-void oled_digit(u8 x,u8 y,long long num,u8 totalLen,u8 size);
+void oled_digit(u8 x,u8 y,int num,u8 size);
 
 //Í¼Æ¬ ÒõÂë Ë³Ïò ÖðÐÐ
 extern const unsigned char LOW_BATTERY[144];
@@ -58,7 +58,10 @@ extern const unsigned char BATTERY_3[36];
 extern const unsigned char BATTERY_2[36];
 extern const unsigned char BATTERY_1[36];
 extern const unsigned char BATTERY_0[36];
+extern const unsigned char gamepad[36];
 extern const unsigned char start_bmp[1024];
+extern const unsigned char buttonPad[36];
+extern const unsigned char buttonConfig[36];
 #endif  
 	 
 

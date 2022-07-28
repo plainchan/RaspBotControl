@@ -12,19 +12,49 @@ IMU_Raw_msg imu_raw_msg;
 PID pid;
 Battery batteryState = BATTERY_FULL;
 
+u32 tick_clock = 0;
 
-/* time flag */
-u32 flag_500ms = 0;
 
-void time_flag(void)
+u8 trigger_switch(u32 interval)
 {
-	// time flag
-	++flag_500ms;
-	if (flag_500ms > 50)
-	{
-		STATE_LED = !STATE_LED;
-		flag_500ms = 0;
-	}
+		static u8 flag = 1;
+		static u32 clock = 0;
+		static u8 trigger = 1;
+		if(flag)
+		{
+			clock = tick_clock;
+			flag = 0;		
+		}
+		else if(tick_clock-clock>=interval)
+		{
+			flag = 1;
+			trigger = !trigger;
+		}
+		return trigger;
+}
+u8 trigger_once(u32 interval)
+{
+		static u8 start = 1;
+		static u32 clock = 0;
+		if(start)
+		{
+			clock = tick_clock;
+			start = 0;		
+		}
+		else if(tick_clock-clock>=interval)
+		{
+			start =1; 
+			return 1;	
+		}
+		return 0;
+}
+
+
+void state_led(void)
+{
+		if(trigger_once(500))
+			STATE_LED =!STATE_LED;
+		
 }
 
 void voltage_check(void)
@@ -38,7 +68,7 @@ void voltage_check(void)
 	//更新电压
 	if (voltage - robot_msgs.voltage > BAT_RESOLUTION || robot_msgs.voltage - voltage > BAT_RESOLUTION)
 		robot_msgs.voltage = voltage;
-
+robot_msgs.voltage = 0.0;
 	if (robot_msgs.voltage <= LOW_VOLTAGE)
 		batteryState = BATTERY_ALARM;
 	else if (robot_msgs.voltage > 11.85)
@@ -72,35 +102,26 @@ void oled_showContent(void)
 	case BATTERY_LOW:
 		oled_picture(104, 0, 24, 12, BATTERY_1);
 		break;
-	case BATTERY_ALARM: 
-        oled_picture(104, 0, 24, 12, BATTERY_0);
-		break;
+	case BATTERY_ALARM:
+			if(trigger_switch(500))
+				oled_picture(104, 0, 24, 12, BATTERY_0);
+			else
+				oled_str(104,0,"    ",12);	
+			break;
+		
 	}
 
 	//显示受控速度
-	if (motor_msgs.velocity >= 0.0)
-		oled_char(98, 36, '+', 12, 1);
-	else
-		oled_char(98, 36, '-', 12, 1);
-	if (motor_msgs.angular >= 0.0)
-		oled_char(98, 52, '+', 12, 1);
-	else
-		oled_char(98, 52, '-', 12, 1);
 	oled_float(104, 36, motor_msgs.velocity, 1, 2, 12);
 	oled_float(104, 52, motor_msgs.angular, 1, 2, 12);
 
 
 	//显示编码器速度
-	if (robot_msgs.l_encoder_pulse >= 0.0)
-		oled_char(0, 40, '+', 12, 1);
-	else
-		oled_char(0, 40, '-', 12, 1);
-	if (robot_msgs.r_encoder_pulse >= 0.0)
-		oled_char(0, 52, '+', 12, 1);
-	else
-		oled_char(0, 52, '-', 12, 1);
-	oled_digit(7, 40, robot_msgs.l_encoder_pulse, 4, 12);
-	oled_digit(7, 52, robot_msgs.r_encoder_pulse, 4, 12);
+	oled_digit(0,40, robot_msgs.l_encoder_pulse,12);
+	oled_digit(0,52, robot_msgs.r_encoder_pulse,12);
+	motor_msgs.velocity = 0.0;
+	motor_msgs.angular = 0.0;
+	motor_msgs.attribution = ATTRIBUTION_NONE_SPEED;
 	
 	// PID
 	// oled_char(0,0,'P',12,0);oled_float(8,0,pid.Kp, 1, 4,12);
@@ -110,10 +131,10 @@ void oled_showContent(void)
     //显示ps2
     switch(ps2_mode)
     {
-        case DIGITAL_MODE: oled_char(0,0,'D',12,1); break;
-        case ANALOG_MODE:  oled_char(0,0,'A',12,1); break;
-        case CONFIG_MODE:  oled_char(0,0,'C',12,1); break;
-        case DISCONNECTED: oled_char(0,0,'N',12,1); break;
+        case DIGITAL_MODE: oled_picture(0,0,24,12,buttonPad); break;
+        case ANALOG_MODE:  oled_picture(0, 0, 24, 12, gamepad); break;
+        case CONFIG_MODE:  oled_picture(0, 0, 24, 12, buttonConfig); break;
+        case DISCONNECTED: oled_str(0,0,"    ",12); break;
     }
 
 	oled_update();
@@ -225,9 +246,7 @@ void speed_control()
 
 	motor_pwm(pid.out_pwm[0],pid.out_pwm[1]);
 
-    motor_msgs.velocity = 0.0;
-    motor_msgs.angular = 0.0;
-    motor_msgs.attribution = ATTRIBUTION_NONE_SPEED;
+
 }
 
 /**
@@ -241,7 +260,9 @@ void TIM1_UP_IRQHandler(void)
 		TIM_ClearITPendingBit(TIM1, TIM_IT_Update);
 	
 	//时间标志
-	time_flag();
+	tick_clock+=10;
+	
+	state_led();
 
 	//读取编码器
 	robot_msgs.l_encoder_pulse = -Read_Encoder(2);

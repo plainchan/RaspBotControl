@@ -22,6 +22,8 @@
 #define  ATTRIBUTION_DISCONNECT_SPEED     2
 #define  ATTRIBUTION_NONE_SPEED           3
 
+#define  STATE_LED_NORMAL_COUNT   500
+
 #define joy_forward_scale    0.003f
 #define joy_backward_scale   0.0015f
 #define joy_steering_scale   0.005f
