@@ -47,7 +47,7 @@ void oled_char(u8 x,u8 y,u8 chr,u8 size,u8 mode);
 void oled_num(u8 x,u8 y,u32 num,u8 len,u8 size);
 void oled_str(u8 x,u8 y,const u8 *p,u8 size);	 
 void oled_print(unsigned char x,unsigned char y,unsigned char ch[]);
-void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size);
+void oled_float(u8 x,u8 y,float num,u8 precison,u8 size);
 void oled_picture(u8 x,u8 y,u8 w,u8 h,const unsigned char *bmp);
 void oled_digit(u8 x,u8 y,int num,u8 size);
 
@@ -62,6 +62,8 @@ extern const unsigned char gamepad[36];
 extern const unsigned char start_bmp[1024];
 extern const unsigned char buttonPad[36];
 extern const unsigned char buttonConfig[36];
+
+extern const unsigned char safe_lock[18];
 #endif  
 	 
 

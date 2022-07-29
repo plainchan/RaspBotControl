@@ -8,7 +8,7 @@
 #define  G  9.780
 
 #define ANALOG_VOL    3.30          //模拟电压参考值
-#define COV_COUNT     5.0         	//电压循环检测次数
+#define COV_COUNT     100         	//电压循环检测次数
 #define VOL_SCALE     4.333         //分压比例     10K/3K+1
 #define LOW_VOLTAGE   9.6           //最低电压
 #define BAT_RESOLUTION 0.05
@@ -22,11 +22,12 @@
 #define  ATTRIBUTION_DISCONNECT_SPEED     2
 #define  ATTRIBUTION_NONE_SPEED           3
 
-#define  STATE_LED_NORMAL_COUNT   500
 
 #define joy_forward_scale    0.003f
 #define joy_backward_scale   0.0015f
 #define joy_steering_scale   0.005f
+
+#define  STATE_LED_NORMAL_DURATION   500
 
 typedef enum
 {
@@ -99,6 +100,8 @@ extern  Motor_msgs     motor_msgs;
 extern  IMU_Raw_msg    imu_raw_msg;
 extern  PID            pid;
 	
+
+extern volatile char safe_mode;
 
 void voltage_check(void);
 void oled_showContent(void);

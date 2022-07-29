@@ -28,7 +28,7 @@
 //¶¨Ê±Æ÷¼ä¸ô
 #define intervalTimer                  0.01f
 
-extern volatile char safe_mode;
+
 extern volatile char uart_lock;
            
 
@@ -36,6 +36,6 @@ void board_configInit(void);
 void motor_pwm(int16_t duty_L,int16_t duty_R);
 u16 getAnalogValue(void);
 short Read_Encoder(u8 TIMX);
-void security_mode(void);
+void	MOTOR_ENABLE(FunctionalState state);
 
 #endif

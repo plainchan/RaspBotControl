@@ -335,7 +335,7 @@ void oled_digit(u8 x,u8 y,int num,u8 size)
 	}
 	while(base>0)
 	{
-		char ch = integer/base+'0';
+		u8 ch = integer/base+'0';
 		oled_char(x,y,ch,size,1);
 		integer = integer-base*(ch-'0');
 		base/=10;
@@ -346,13 +346,19 @@ void oled_digit(u8 x,u8 y,int num,u8 size)
 	last_x = x+(num>0?0:interval);
 }
 
-void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size)
+void oled_float(u8 x,u8 y,float num,u8 precison,u8 size)
 {
-	for(int i=0;i<=totalLen;++i)
-		oled_char(x+i*size/2,y,' ',size,1);
+	static u8 last_x =0;
+	u8 interval=size/2;
+	
+	if(num < 0) 
+	{
+		oled_char(x,y,'-',size,1);
+		x+=interval;
+	}
+	
 	u32 integer = fabs(num);
 	u32 base = mypow(10,precison);
-	u32 decimal = fabs(num*base)-integer*base;
 	base=1;
 	while(base <= integer/10)
 	{
@@ -360,27 +366,27 @@ void oled_float(u8 x,u8 y,float num,u8 precison,u8 totalLen,u8 size)
 	}
 	while(base>0)
 	{
-		char ch = integer/base+'0';
+		u8 ch = integer/base+'0';
 		oled_char(x,y,ch,size,1);
 		integer = integer-base*(ch-'0');
 		base/=10;
-		x+=size/2;
+		x+=interval;
 	}
 	oled_char(x,y,'.',size,1);
-	x+=size/2;
-	base=1;
-	while(base <= decimal/10)
+	x+=interval;
+	
+	integer = fabs(num);
+	for(int i=1;i<=precison;++i)
 	{
-		base*=10;
-	}
-	while(base>0)
-	{
-		char ch = decimal/base+'0';
+		integer*=10;
+		u8 ch = (u32)(fabs(num)*mypow(10,i)) - integer+'0';
 		oled_char(x,y,ch,size,1);
-		decimal= decimal-base*(ch-'0');
-		base/=10;
-		x+=size/2;
+		integer+=ch-'0';
+		x+=interval;
 	}
+	for(int i=x;i<last_x;i+=interval)
+		oled_char(i,y,' ',size,1);
+	last_x = x+(num>0?0:interval);
 }
 
 /*

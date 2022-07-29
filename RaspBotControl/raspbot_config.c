@@ -501,16 +501,7 @@ void stateLED_init()
 	GPIO_Init(GPIOC, &GPIO_InitStructure);			      //初始化GPIOC.13
 }
 
-/**
- * @brief  安全模式，长按按键上锁/解锁
- */
-volatile char safe_mode = 0;
-void security_mode(void)
-{
-	while(safe_mode)
-	{
-	}
-}
+
 
 
 volatile char uart_lock = 0;

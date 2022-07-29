@@ -4,7 +4,7 @@
 #include "math.h"
 #include "stdlib.h"
 #include "ps2lib.h"
-
+#include "stdbool.h"
 /* global params */
 Robot_msgs robot_msgs;
 Motor_msgs motor_msgs;
@@ -15,7 +15,14 @@ Battery batteryState = BATTERY_FULL;
 u32 tick_clock = 0;
 
 
-u8 trigger_switch(u32 interval)
+/**
+ * @brief 间隔设置时间，开关切换一次
+ * 		  分辨率定时器中断间隔
+ * 
+ * @param ms 间隔设置时间
+ * @return u8  true or false
+ */
+u8 duration_trigger_switch(u32 ms)
 {
 		static u8 flag = 1;
 		static u32 clock = 0;
@@ -25,14 +32,20 @@ u8 trigger_switch(u32 interval)
 			clock = tick_clock;
 			flag = 0;		
 		}
-		else if(tick_clock-clock>=interval)
+		else if(tick_clock-clock>=ms)
 		{
 			flag = 1;
 			trigger = !trigger;
 		}
 		return trigger;
 }
-u8 trigger_once(u32 interval)
+/**
+ * @brief  间隔设置时间，触发一次，常开开关
+ * 
+ * @param ms 
+ * @return u8 
+ */
+u8 duration_trigger_once(u32 ms)
 {
 		static u8 start = 1;
 		static u32 clock = 0;
@@ -41,7 +54,7 @@ u8 trigger_once(u32 interval)
 			clock = tick_clock;
 			start = 0;		
 		}
-		else if(tick_clock-clock>=interval)
+		else if(tick_clock-clock>=ms)
 		{
 			start =1; 
 			return 1;	
@@ -49,28 +62,131 @@ u8 trigger_once(u32 interval)
 		return 0;
 }
 
+/**
+ * @brief 长按按键检测，触发一次
+ * 
+ * @param button 按键
+ * @param ms  长按触发时间间隔
+ * @return u8 
+ */
+u8 longPressButton_triggerOnce(u16 button,u32 ms)
+{
+		if(ms<1000)
+			return 0;
+		
+		static u32 clock = 0;
+		static u8  trigger = 0;
+		
+		if(buttonPressed(button))
+		{
+			clock = tick_clock;		
+		}
+		
+		if(trigger && !buttonReleased(button))
+			return !trigger;
+		else
+			trigger =0;
+		
+		if(!getButtonStatus(button))
+			clock = tick_clock;
+		else if(tick_clock-clock>ms)
+		{
+			clock = tick_clock;
+			trigger =1;
+		}
+		return trigger;
+}
 
+/**
+ * @brief 长按按键检测，保持触发状态
+ * 
+ * @param button 按键
+ * @param ms 长按触发时间间隔
+ * @return u8 
+ */
+u8 longPressButton_trigger(u16 button,u32 ms)
+{
+		if(ms<1000)
+			return 0;
+		
+		static u32 clock = 0;
+
+		
+		if(buttonPressed(button))
+		{
+			clock = tick_clock;		
+		}
+		
+		if(!getButtonStatus(button))
+			clock = tick_clock;
+		else if(!buttonReleased(button)&&tick_clock-clock>ms)
+			return 1;
+		
+		return 0;
+}
+/**
+ * @brief 
+ * 
+ * @param button 
+ * @param ms 
+ * @return u8 
+ */
+u8 pressButton_triggerPeriodic(u16 button,u32 ms)
+{
+		if(ms<=100)
+			ms=100;
+		
+		static u32 clock = 0;
+
+		
+		if(buttonPressed(button))
+		{
+			clock = tick_clock;		
+		}
+		
+		if(!getButtonStatus(button))
+			clock = tick_clock;
+		else if(tick_clock-clock>ms)
+		{
+			clock = tick_clock;
+			return 1;
+		}
+		
+		return 0;
+}
+
+
+/**
+ * @brief 运行状态指示灯
+ * 
+ */
 void state_led(void)
 {
-		if(trigger_once(500))
-			STATE_LED =!STATE_LED;
+	if(duration_trigger_once(STATE_LED_NORMAL_DURATION))
+		STATE_LED =!STATE_LED;
 		
 }
 
 void voltage_check(void)
 {
-	u32 value = 0;
-	for (int i = 1; i <= COV_COUNT; ++i)
+	static u32 value = 0;
+	static u16 check_count = 0;
+	if(++check_count<= COV_COUNT)
 	{
 		value += getAnalogValue();
+		return;
 	}
-	float voltage = ((value / COV_COUNT) / 4096.0) * ANALOG_VOL * VOL_SCALE;
+	
+	float voltage = VOL_SCALE*ANALOG_VOL*value / (COV_COUNT*4096);
 	//更新电压
 	if (voltage - robot_msgs.voltage > BAT_RESOLUTION || robot_msgs.voltage - voltage > BAT_RESOLUTION)
 		robot_msgs.voltage = voltage;
-robot_msgs.voltage = 0.0;
+
 	if (robot_msgs.voltage <= LOW_VOLTAGE)
+	{
 		batteryState = BATTERY_ALARM;
+//		safe_mode = true;
+	}
 	else if (robot_msgs.voltage > 11.85)
 		batteryState = BATTERY_FULL;
 	else if (robot_msgs.voltage > 11.1 && robot_msgs.voltage <= 11.85)
@@ -79,12 +195,26 @@ robot_msgs.voltage = 0.0;
 		batteryState = BATTERY_LESS;
 	else if (robot_msgs.voltage > 9.6 && robot_msgs.voltage <= 10.35)
 		batteryState = BATTERY_LOW;
+	
+	check_count = 0;
+	value = 0;
 }
 
+/**
+ * @brief  安全模式，长按按键上锁/解锁
+ */
+volatile char safe_mode = 0;
 
 
 void oled_showContent(void)
 {
+	//安全模式，长按按键上锁/解锁
+	if(safe_mode)
+		oled_picture(88,0,12,12,safe_lock);
+	else
+		oled_str(88,0,"  ",12);
+	
+	
     // // 显示电压
     // oled_float(74, 0, robot_msgs.voltage, 1, 3, 12);
     // oled_char(98, 0, 'V', 12, 1);
@@ -103,7 +233,7 @@ void oled_showContent(void)
 		oled_picture(104, 0, 24, 12, BATTERY_1);
 		break;
 	case BATTERY_ALARM:
-			if(trigger_switch(500))
+			if(duration_trigger_switch(500))
 				oled_picture(104, 0, 24, 12, BATTERY_0);
 			else
 				oled_str(104,0,"    ",12);	
@@ -112,8 +242,8 @@ void oled_showContent(void)
 	}
 
 	//显示受控速度
-	oled_float(104, 36, motor_msgs.velocity, 1, 2, 12);
-	oled_float(104, 52, motor_msgs.angular, 1, 2, 12);
+	oled_float(104, 36, motor_msgs.velocity, 1,12);
+	oled_float(104, 52, motor_msgs.angular, 1,12);
 
 
 	//显示编码器速度
@@ -193,60 +323,68 @@ void ps2_control(void)
 	else
 	{
 		//ps2 digital mode is used to  interaction  with mcu as keyboard
+		
+		//safe lock
 
-		
-		
+		if(longPressButton_triggerOnce(PSB_L2,2000))
+		{
+			safe_mode=!safe_mode;
+		}
 	}
 }
 void speed_control()
 {
-	
-   //limit speed
-  if(motor_msgs.velocity > MAX_SPEED) motor_msgs.velocity=MAX_SPEED;
-  else if(motor_msgs.velocity < -MAX_SPEED*0.6) motor_msgs.velocity=-MAX_SPEED*0.6;
+	if(safe_mode)
+	{
+		motor_pwm(0,0);
+		MOTOR_ENABLE(DISABLE);
+	}
+	else
+	{
+		 //limit speed
+		MOTOR_ENABLE(ENABLE);
+		if(motor_msgs.velocity > MAX_SPEED) motor_msgs.velocity=MAX_SPEED;
+		else if(motor_msgs.velocity < -MAX_SPEED*0.6) motor_msgs.velocity=-MAX_SPEED*0.6;
 
-  if(motor_msgs.angular > MAX_STEERING) motor_msgs.angular=MAX_STEERING;
-  else if(motor_msgs.angular < -MAX_STEERING) motor_msgs.angular=-MAX_STEERING;
+		if(motor_msgs.angular > MAX_STEERING) motor_msgs.angular=MAX_STEERING;
+		else if(motor_msgs.angular < -MAX_STEERING) motor_msgs.angular=-MAX_STEERING;
 
-	// speed resolution
-	float L_velocity = motor_msgs.velocity - motor_msgs.angular * wheelTrack / 2;
-	float R_velocity = motor_msgs.velocity + motor_msgs.angular * wheelTrack / 2;
-	int16_t L_encoderSet = L_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
-	int16_t R_encoderSet = R_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
-
-
-
-    //PID control
-	pid.error[0] = L_encoderSet - robot_msgs.l_encoder_pulse;
-	pid.error[1] = R_encoderSet - robot_msgs.r_encoder_pulse;
-	
-	pid.accumu_error[0]+=pid.error[0];
-	pid.accumu_error[1]+=pid.error[1];
-	
-	pid.out_pwm[0] = pid.Kp*pid.error[0]+pid.Ki*pid.accumu_error[0]+pid.Kd*(pid.error[0]-pid.last_error[0]);
-	pid.out_pwm[1] = pid.Kp*pid.error[1]+pid.Ki*pid.accumu_error[1]+pid.Kd*(pid.error[1]-pid.last_error[1]);
+		// speed resolution
+		float L_velocity = motor_msgs.velocity - motor_msgs.angular * wheelTrack / 2;
+		float R_velocity = motor_msgs.velocity + motor_msgs.angular * wheelTrack / 2;
+		int16_t L_encoderSet = L_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
+		int16_t R_encoderSet = R_velocity * intervalTimer * PPR / (2 * wheelRadius * M_PI); 
 
 
 
-	pid.last_error[0]=pid.error[0];
-	pid.last_error[1]=pid.error[1];
- 
-	//OUT limit
-	if(pid.out_pwm[0]>pid.limMax) pid.out_pwm[0]=pid.limMax;
-	else if(pid.out_pwm[0]<pid.limMin && pid.out_pwm[0]>0) pid.out_pwm[0]=pid.limMin;
-	if(pid.out_pwm[1]>pid.limMax) pid.out_pwm[1]=pid.limMax;
-	else if(pid.out_pwm[1]<pid.limMin && pid.out_pwm[1]>0) pid.out_pwm[1]=pid.limMin;
-
-	if(pid.out_pwm[0]<-pid.limMax) pid.out_pwm[0]=-pid.limMax;
-	else if(pid.out_pwm[0]>-pid.limMin && pid.out_pwm[0]<0) pid.out_pwm[0]=-pid.limMin;
-	if(pid.out_pwm[1]<-pid.limMax) pid.out_pwm[1]=-pid.limMax;
-	else if(pid.out_pwm[1]>-pid.limMin && pid.out_pwm[1]<0) pid.out_pwm[1]=-pid.limMin;
-	
+			//PID control
+		pid.error[0] = L_encoderSet - robot_msgs.l_encoder_pulse;
+		pid.error[1] = R_encoderSet - robot_msgs.r_encoder_pulse;
+		
+		pid.accumu_error[0]+=pid.error[0];
+		pid.accumu_error[1]+=pid.error[1];
+		
+		pid.out_pwm[0] = pid.Kp*pid.error[0]+pid.Ki*pid.accumu_error[0]+pid.Kd*(pid.error[0]-pid.last_error[0]);
+		pid.out_pwm[1] = pid.Kp*pid.error[1]+pid.Ki*pid.accumu_error[1]+pid.Kd*(pid.error[1]-pid.last_error[1]);
 
 
-	motor_pwm(pid.out_pwm[0],pid.out_pwm[1]);
 
+		pid.last_error[0]=pid.error[0];
+		pid.last_error[1]=pid.error[1];
+	 
+		//OUT limit
+		if(pid.out_pwm[0]>pid.limMax) pid.out_pwm[0]=pid.limMax;
+		else if(pid.out_pwm[0]<pid.limMin && pid.out_pwm[0]>0) pid.out_pwm[0]=pid.limMin;
+		if(pid.out_pwm[1]>pid.limMax) pid.out_pwm[1]=pid.limMax;
+		else if(pid.out_pwm[1]<pid.limMin && pid.out_pwm[1]>0) pid.out_pwm[1]=pid.limMin;
 
+		if(pid.out_pwm[0]<-pid.limMax) pid.out_pwm[0]=-pid.limMax;
+		else if(pid.out_pwm[0]>-pid.limMin && pid.out_pwm[0]<0) pid.out_pwm[0]=-pid.limMin;
+		if(pid.out_pwm[1]<-pid.limMax) pid.out_pwm[1]=-pid.limMax;
+		else if(pid.out_pwm[1]>-pid.limMin && pid.out_pwm[1]<0) pid.out_pwm[1]=-pid.limMin;
+		
+		motor_pwm(pid.out_pwm[0],pid.out_pwm[1]);
+	}
 }
 
 /**
@@ -274,6 +412,9 @@ void TIM1_UP_IRQHandler(void)
 	//速度解算与PID控制
 	speed_control();
 	
+	//电压检测
+	voltage_check();
+	
 	//send data
 	sendFrame_Encoder_dpkg(&robot_msgs);  //0.88ms
 }
@@ -282,7 +423,7 @@ void TIM1_UP_IRQHandler(void)
 
 void param_init(void)
 {
-	robot_msgs.voltage = 11.1;
+	robot_msgs.voltage = 12.6;
 	robot_msgs.l_encoder_pulse = 0;
 	robot_msgs.r_encoder_pulse = 0;
 	robot_msgs.acc[0]=0;

@@ -59,7 +59,7 @@ uint8_t  sendCommandLists(const uint8_t *byte,uint8_t len)
 {
 	reset_resp_data();
 	CS = 0;
-	delay_us(CLK_DELAY);
+//	delay_us(CLK_DELAY/2+1);
 	for(int i=0;i<len;++i)
 	{
 		ps2_resp_data[i]=sendCommmandAndGetResp(byte[i]);

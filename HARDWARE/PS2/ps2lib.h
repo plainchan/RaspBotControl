@@ -57,7 +57,7 @@
 #define BIT_SET(byte,x) (byte|=(1<<x))
 #define IS_BIT_SET(byte,x) (byte & (1<<x))
 
-#define   CLK_DELAY         5
+#define   CLK_DELAY         10
 //#define SEND_BYTE_DELAY   5
 
 #define CLK       PBout(5) //PB5
